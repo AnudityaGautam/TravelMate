@@ -773,7 +773,8 @@ function initExpenseTracker() {
     return trips[0];
   }
 
-  function saveActiveTrip(updatedTrip) {
+  function saveActiveTrip(updatedTrip, skipCloud = false) {
+    ensureTripSyncMetadata(updatedTrip);
     const trips = getAllTrips();
     const index = trips.findIndex(t => t.id === updatedTrip.id);
     if (index !== -1) {
@@ -782,6 +783,10 @@ function initExpenseTracker() {
       trips.unshift(updatedTrip);
     }
     saveAllTrips(trips);
+
+    if (!skipCloud) {
+      pushTripToCloud(updatedTrip);
+    }
   }
 
   // --------------------------------------------------
@@ -2143,15 +2148,18 @@ function initExpenseTracker() {
     };
   }
 
-  // Generates a clean, robust share URL
+  // Generates a clean, robust live share URL
   function generateShareUrl(trip) {
     try {
+      ensureTripSyncMetadata(trip);
       const compact = compressTrip(trip);
       const jsonStr = JSON.stringify(compact);
       const token = safeUtf8ToBase64(jsonStr);
 
       const baseUrl = window.location.href.split('?')[0].split('#')[0];
-      return `${baseUrl}?shareData=${encodeURIComponent(token)}`;
+      const roomParam = trip.roomCode ? `&room=${encodeURIComponent(trip.roomCode)}` : '';
+      const cloudParam = trip.cloudId ? `&cloudId=${encodeURIComponent(trip.cloudId)}` : '';
+      return `${baseUrl}?shareData=${encodeURIComponent(token)}${roomParam}${cloudParam}`;
     } catch (e) {
       console.error('Error generating share URL:', e);
       return window.location.href;
@@ -2234,30 +2242,38 @@ function initExpenseTracker() {
     }
 
     const trimmed = rawStr.trim();
-
-    // 1. Extract token from URL if present
     let token = trimmed;
-    if (trimmed.includes('shareData=')) {
+    let roomParam = '';
+    let cloudIdParam = '';
+
+    if (trimmed.includes('shareData=') || trimmed.includes('?')) {
       try {
-        const urlObj = new URL(trimmed);
-        token = urlObj.searchParams.get('shareData') || '';
+        const urlObj = new URL(trimmed.startsWith('http') ? trimmed : 'http://dummy.com/' + trimmed);
+        token = urlObj.searchParams.get('shareData') || token;
+        roomParam = urlObj.searchParams.get('room') || '';
+        cloudIdParam = urlObj.searchParams.get('cloudId') || '';
       } catch (e) {
         const match = trimmed.match(/shareData=([^&#\s]+)/);
         if (match) token = match[1];
+        const rMatch = trimmed.match(/room=([^&#\s]+)/);
+        if (rMatch) roomParam = rMatch[1];
       }
     }
 
     token = decodeURIComponent(token);
 
-    // 2. Decode Base64 token
     try {
       const decodedJson = safeBase64ToUtf8(token);
       if (decodedJson) {
         const parsed = JSON.parse(decodedJson);
         const trip = decompressTrip(parsed);
         if (trip && trip.name && Array.isArray(trip.members) && trip.members.length > 0) {
+          if (roomParam) trip.roomCode = roomParam.toUpperCase();
+          if (cloudIdParam) trip.cloudId = cloudIdParam;
+          ensureTripSyncMetadata(trip);
+
           const trips = getAllTrips();
-          const existingIdx = trips.findIndex(t => t.id === trip.id);
+          const existingIdx = trips.findIndex(t => t.id === trip.id || (t.roomCode && t.roomCode === trip.roomCode));
           if (existingIdx !== -1) {
             trips[existingIdx] = trip;
           } else {
@@ -2265,6 +2281,7 @@ function initExpenseTracker() {
           }
           saveAllTrips(trips);
           setActiveTripId(trip.id);
+          startLiveCloudSync(trip);
           return { success: true, trip: trip };
         }
       }
@@ -2272,34 +2289,54 @@ function initExpenseTracker() {
       console.warn('Base64 parse in import error:', err);
     }
 
-    // 3. Check if Room Code (alphanumeric 3-12 characters, e.g. GOA26)
+    // Check if Room Code (alphanumeric 3-12 characters, e.g. GOA26)
     if (/^[A-Z0-9_-]{3,12}$/i.test(trimmed)) {
       const roomCode = trimmed.toUpperCase();
       const trips = getAllTrips();
       const match = trips.find(t => t.roomCode && t.roomCode.toUpperCase() === roomCode);
       if (match) {
         setActiveTripId(match.id);
+        startLiveCloudSync(match);
         return { success: true, trip: match, isLocalRoom: true };
       }
-      return { success: false, error: `Room code "${roomCode}" was not found locally. Use Cloud Sync Connect to sync it from online peers.` };
+      pullTripFromCloud(null, roomCode);
+      return { success: true, trip: { name: `Room ${roomCode}`, roomCode }, isRemoteRoom: true };
     }
 
     return { success: false, error: 'Invalid or incomplete trip data. Please copy the complete share link or token.' };
   }
 
-  // Auto-import shared trip when opening a link with ?shareData=...
+  // Auto-import shared trip when opening a link with ?shareData=... or &room=...
   function checkUrlShareData() {
     try {
       const params = new URLSearchParams(window.location.search);
       const shareDataParam = params.get('shareData');
-      if (shareDataParam) {
-        const result = importTripFromData(shareDataParam);
-        if (result.success) {
-          alert(`🎉 Trip "${result.trip.name}" successfully imported onto this device!`);
-          if (window.history && window.history.replaceState) {
-            const cleanUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
-            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-          }
+      const roomParam = params.get('room');
+      const cloudIdParam = params.get('cloudId');
+
+      if (shareDataParam || roomParam || cloudIdParam) {
+        let importedTrip = null;
+        if (shareDataParam) {
+          const result = importTripFromData(shareDataParam);
+          if (result.success) importedTrip = result.trip;
+        }
+
+        if (importedTrip) {
+          if (roomParam) importedTrip.roomCode = roomParam.toUpperCase();
+          if (cloudIdParam) importedTrip.cloudId = cloudIdParam;
+          ensureTripSyncMetadata(importedTrip);
+          saveActiveTrip(importedTrip, true);
+          setActiveTripId(importedTrip.id);
+          startLiveCloudSync(importedTrip);
+          pullTripFromCloud(importedTrip.cloudId, importedTrip.roomCode);
+          showLiveSyncToast(`🎉 Connected to live trip: "${importedTrip.name}"`);
+        } else if (roomParam) {
+          pullTripFromCloud(cloudIdParam, roomParam);
+        }
+
+        if (window.history && window.history.replaceState) {
+          const cleanUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
+          window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
         }
       }
     } catch (err) {
@@ -2454,14 +2491,261 @@ function initExpenseTracker() {
   }
 
   // --------------------------------------------------
-  // Feature B: Cloud Room Sync
+  // Feature B: Real-Time Multi-Device Live Cloud Sync Engine
   // --------------------------------------------------
+  let syncEventSource = null;
+  let syncPollInterval = null;
+  let liveBroadcastChannel = null;
+
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      liveBroadcastChannel = new BroadcastChannel('travelmate_live_sync_bus');
+      liveBroadcastChannel.onmessage = (event) => {
+        if (event.data && event.data.type === 'TRIP_UPDATED') {
+          handleIncomingLiveTrip(event.data.trip, 'Local Tab');
+        }
+      };
+    }
+  } catch (e) {
+    console.warn('BroadcastChannel notice:', e);
+  }
+
+  function showLiveSyncToast(msg = '⚡ Live Sync: Trip updated in real-time!') {
+    let toast = document.getElementById('liveSyncToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'liveSyncToast';
+      toast.className = 'live-sync-toast';
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<span>⚡</span> <span>${msg}</span>`;
+    toast.classList.remove('hidden');
+    toast.style.display = 'flex';
+
+    if (toast._timer) clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => {
+      toast.classList.add('hidden');
+      toast.style.display = 'none';
+    }, 3200);
+  }
+
+  function ensureTripSyncMetadata(trip) {
+    if (!trip) return;
+    if (!trip.updatedAt) trip.updatedAt = Date.now();
+    if (!trip.roomCode) {
+      const destPrefix = (trip.destination || trip.name || 'TRIP')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .substring(0, 4)
+        .toUpperCase() || 'TRIP';
+      const randNum = Math.floor(1000 + Math.random() * 9000);
+      trip.roomCode = `${destPrefix}${randNum}`;
+    }
+  }
+
+  async function pushTripToCloud(trip) {
+    if (!trip || !trip.roomCode) return;
+    ensureTripSyncMetadata(trip);
+    trip.updatedAt = Date.now();
+
+    if (cloudSyncStatus) {
+      cloudSyncStatus.textContent = `Syncing to Room ${trip.roomCode}...`;
+    }
+
+    try {
+      // 1. Broadcast to other open tabs on this device
+      if (liveBroadcastChannel) {
+        liveBroadcastChannel.postMessage({ type: 'TRIP_UPDATED', trip: trip });
+      }
+
+      // 2. Publish to NTFY Realtime SSE Message Bus for instantaneous cross-device push
+      const ntfyTopic = `travelmate_sync_${trip.roomCode.toLowerCase()}`;
+      fetch(`https://ntfy.sh/${ntfyTopic}`, {
+        method: 'POST',
+        headers: { 'Title': 'TravelMate Live Sync', 'Tags': 'airplane,moneybag' },
+        body: JSON.stringify({
+          type: 'LIVE_TRIP_UPDATE',
+          tripId: trip.id,
+          updatedAt: trip.updatedAt,
+          cloudId: trip.cloudId || null,
+          trip: trip
+        })
+      }).catch(err => console.warn('NTFY push notice:', err));
+
+      // 3. Persistent REST object store
+      if (trip.cloudId) {
+        fetch(`https://api.restful-api.dev/objects/${trip.cloudId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: trip.name,
+            data: trip
+          })
+        }).catch(e => console.warn('REST PUT notice:', e));
+      } else {
+        fetch('https://api.restful-api.dev/objects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: trip.name,
+            data: trip
+          })
+        }).then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data && data.id) {
+              trip.cloudId = data.id;
+              const trips = getAllTrips();
+              const idx = trips.findIndex(t => t.id === trip.id);
+              if (idx !== -1) {
+                trips[idx].cloudId = data.id;
+                saveAllTrips(trips);
+              }
+            }
+          }).catch(e => console.warn('REST create notice:', e));
+      }
+
+      if (cloudSyncStatus) {
+        cloudSyncStatus.textContent = `🟢 Live Synced • Room: ${trip.roomCode} (${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })})`;
+      }
+      if (syncStatusDot) {
+        syncStatusDot.style.backgroundColor = '#10b981';
+        syncStatusDot.style.boxShadow = '0 0 10px #10b981';
+        syncStatusDot.classList.add('live-sync-pulse');
+        setTimeout(() => syncStatusDot.classList.remove('live-sync-pulse'), 3000);
+      }
+    } catch (err) {
+      console.warn('Cloud sync push warning:', err);
+      if (cloudSyncStatus) {
+        cloudSyncStatus.textContent = `Saved locally • Room: ${trip.roomCode}`;
+      }
+    }
+  }
+
+  async function pullTripFromCloud(cloudId, roomCode) {
+    const activeTrip = getActiveTrip();
+    const effectiveRoom = (roomCode || activeTrip?.roomCode || '').trim();
+    const effectiveCloudId = (cloudId || activeTrip?.cloudId || '').trim();
+
+    if (!effectiveRoom && !effectiveCloudId) return;
+
+    try {
+      let remoteTrip = null;
+
+      if (effectiveCloudId) {
+        const res = await fetch(`https://api.restful-api.dev/objects/${effectiveCloudId}`);
+        if (res.ok) {
+          const obj = await res.json();
+          if (obj && obj.data && obj.data.name) {
+            remoteTrip = obj.data;
+          }
+        }
+      }
+
+      if (!remoteTrip && effectiveRoom) {
+        const ntfyTopic = `travelmate_sync_${effectiveRoom.toLowerCase()}`;
+        const res = await fetch(`https://ntfy.sh/${ntfyTopic}/json?poll=1`);
+        if (res.ok) {
+          const text = await res.text();
+          const lines = text.trim().split('\n');
+          for (let i = lines.length - 1; i >= 0; i--) {
+            try {
+              const parsedLine = JSON.parse(lines[i]);
+              if (parsedLine.message) {
+                const msgObj = JSON.parse(parsedLine.message);
+                if (msgObj && msgObj.trip && msgObj.trip.name) {
+                  remoteTrip = msgObj.trip;
+                  break;
+                }
+              }
+            } catch (e) {}
+          }
+        }
+      }
+
+      if (remoteTrip) {
+        handleIncomingLiveTrip(remoteTrip, 'Cloud');
+      }
+    } catch (err) {
+      console.warn('Pull trip error:', err);
+    }
+  }
+
+  function handleIncomingLiveTrip(incomingTrip, source = 'Cloud') {
+    if (!incomingTrip || !incomingTrip.id) return;
+    const activeTrip = getActiveTrip();
+
+    const trips = getAllTrips();
+    const existingIdx = trips.findIndex(t => t.id === incomingTrip.id || (t.roomCode && t.roomCode === incomingTrip.roomCode));
+
+    const localTrip = existingIdx !== -1 ? trips[existingIdx] : null;
+    const localUpdated = (localTrip && localTrip.updatedAt) ? Number(localTrip.updatedAt) : 0;
+    const incomingUpdated = incomingTrip.updatedAt ? Number(incomingTrip.updatedAt) : Date.now();
+
+    const isDifferent = !localTrip || JSON.stringify(localTrip.expenses) !== JSON.stringify(incomingTrip.expenses) || localTrip.targetBudget !== incomingTrip.targetBudget || (localTrip.itinerary?.length !== incomingTrip.itinerary?.length);
+
+    if (incomingUpdated >= localUpdated && isDifferent) {
+      if (existingIdx !== -1) {
+        trips[existingIdx] = incomingTrip;
+      } else {
+        trips.unshift(incomingTrip);
+      }
+      saveAllTrips(trips);
+
+      if (activeTrip && (activeTrip.id === incomingTrip.id || activeTrip.roomCode === incomingTrip.roomCode)) {
+        setActiveTripId(incomingTrip.id);
+        renderTracker();
+        showLiveSyncToast(`⚡ Live Update: Trip updated in real-time by collaborator!`);
+        updateCloudSyncDisplay(incomingTrip);
+      }
+    }
+  }
+
+  function startLiveCloudSync(trip) {
+    if (!trip || !trip.roomCode) return;
+    ensureTripSyncMetadata(trip);
+
+    if (syncEventSource) {
+      try { syncEventSource.close(); } catch (e) {}
+      syncEventSource = null;
+    }
+
+    if (syncPollInterval) {
+      clearInterval(syncPollInterval);
+      syncPollInterval = null;
+    }
+
+    const ntfyTopic = `travelmate_sync_${trip.roomCode.toLowerCase()}`;
+    try {
+      syncEventSource = new EventSource(`https://ntfy.sh/${ntfyTopic}/sse`);
+      syncEventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload && payload.message) {
+            const data = JSON.parse(payload.message);
+            if (data && data.trip && data.trip.id) {
+              handleIncomingLiveTrip(data.trip, 'Realtime SSE');
+            }
+          }
+        } catch (err) {
+          console.warn('SSE message parse error:', err);
+        }
+      };
+    } catch (e) {
+      console.warn('EventSource initialization notice:', e);
+    }
+
+    syncPollInterval = setInterval(() => {
+      pullTripFromCloud(trip.cloudId, trip.roomCode);
+    }, 3000);
+
+    updateCloudSyncDisplay(trip);
+  }
+
   function updateCloudSyncDisplay(activeTrip) {
     if (!cloudSyncBar) return;
     if (activeTrip && activeTrip.roomCode) {
       if (syncRoomCodeInput) syncRoomCodeInput.value = activeTrip.roomCode;
       if (cloudSyncStatus) {
-        cloudSyncStatus.textContent = `Connected to Room: ${activeTrip.roomCode}`;
+        cloudSyncStatus.textContent = `🟢 Live Synced • Room: ${activeTrip.roomCode}`;
       }
       if (syncStatusDot) {
         syncStatusDot.style.backgroundColor = '#10b981';
@@ -2490,10 +2774,9 @@ function initExpenseTracker() {
 
       activeTrip.roomCode = code;
       saveActiveTrip(activeTrip);
-
-      localStorage.setItem('travelMate_room_' + code, JSON.stringify(activeTrip));
-      updateCloudSyncDisplay(activeTrip);
-      alert(`✅ Connected to Room "${code}"! Any peer device or tab on this code can now sync.`);
+      startLiveCloudSync(activeTrip);
+      pullTripFromCloud(activeTrip.cloudId, code);
+      alert(`✅ Connected to Live Room "${code}"! Any peer device on this code will now sync in real-time.`);
     });
 
     if (syncPushBtn) {
@@ -2505,16 +2788,8 @@ function initExpenseTracker() {
 
         activeTrip.roomCode = code;
         saveActiveTrip(activeTrip);
-        localStorage.setItem('travelMate_room_' + code, JSON.stringify(activeTrip));
-
-        if (cloudSyncStatus) {
-          cloudSyncStatus.textContent = `Pushed latest updates to Room: ${code} (${new Date().toLocaleTimeString()})`;
-        }
-        if (syncStatusDot) {
-          syncStatusDot.style.backgroundColor = '#10b981';
-          syncStatusDot.style.boxShadow = '0 0 10px #10b981';
-        }
-        alert(`🚀 Success: Trip "${activeTrip.name}" pushed to Room "${code}"!`);
+        pushTripToCloud(activeTrip);
+        showLiveSyncToast(`🚀 Pushed latest trip updates to Room "${code}"!`);
       });
     }
 
@@ -2524,50 +2799,41 @@ function initExpenseTracker() {
         const code = (activeTrip?.roomCode || syncRoomCodeInput.value.trim()).toUpperCase();
         if (!code) return alert('Please enter a room code to pull from.');
 
-        const roomData = localStorage.getItem('travelMate_room_' + code);
-        if (roomData) {
-          try {
-            const parsed = JSON.parse(roomData);
-            if (parsed && parsed.name) {
-              const trips = getAllTrips();
-              const idx = trips.findIndex(t => t.id === parsed.id);
-              if (idx !== -1) {
-                trips[idx] = parsed;
-              } else {
-                trips.unshift(parsed);
-              }
-              saveAllTrips(trips);
-              setActiveTripId(parsed.id);
-              renderTracker();
-              alert(`📥 Success: Latest updates pulled from Room "${code}"!`);
-              return;
-            }
-          } catch (e) {
-            console.error('Error parsing room data:', e);
-          }
-        }
-        alert(`No updates found for room "${code}". Make sure another device has pushed to this room.`);
+        pullTripFromCloud(activeTrip?.cloudId, code);
+        showLiveSyncToast(`📥 Checking for live updates in Room "${code}"...`);
       });
     }
 
+    // Auto sync on window focus & storage event
     window.addEventListener('storage', (e) => {
       const activeTrip = getActiveTrip();
-      if (!activeTrip || !activeTrip.roomCode) return;
-      if (e.key === 'travelMate_room_' + activeTrip.roomCode && e.newValue) {
-        try {
-          const updatedTrip = JSON.parse(e.newValue);
-          if (updatedTrip && updatedTrip.id === activeTrip.id) {
-            saveActiveTrip(updatedTrip);
-            renderTracker();
-            if (cloudSyncStatus) {
-              cloudSyncStatus.textContent = `Auto-synced from peer tab at ${new Date().toLocaleTimeString()}`;
-            }
-          }
-        } catch (err) {
-          console.error('Storage sync error:', err);
+      if (!activeTrip) return;
+      if (e.key === STORAGE_KEYS.TRIPS) {
+        renderTracker();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      const activeTrip = getActiveTrip();
+      if (activeTrip && activeTrip.roomCode) {
+        pullTripFromCloud(activeTrip.cloudId, activeTrip.roomCode);
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        const activeTrip = getActiveTrip();
+        if (activeTrip && activeTrip.roomCode) {
+          pullTripFromCloud(activeTrip.cloudId, activeTrip.roomCode);
         }
       }
     });
+
+    // Start live sync for current active trip on load
+    const active = getActiveTrip();
+    if (active) {
+      startLiveCloudSync(active);
+    }
   }
 
   // --------------------------------------------------
