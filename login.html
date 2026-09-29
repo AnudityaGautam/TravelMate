@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login & Sign Up - TravelMate</title>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-icon-wrap">✈️</div>
+        <div class="logo-text">Travel<span>Mate</span></div>
+      </a>
+
+      <!-- Mobile Menu Toggle Button -->
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation">
+        ☰
+      </button>
+
+      <!-- Navigation Links -->
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="destinations.html" class="nav-link">Destinations</a></li>
+          <li><a href="budget.html" class="nav-link">Trip Expenses</a></li>
+          <li><a href="about.html" class="nav-link">About Us</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions: Theme Toggle & Guest Link -->
+      <div class="nav-actions-group">
+        <button type="button" id="themeToggleBtn" class="btn-theme-toggle" title="Toggle Dark/Light Mode">🌙</button>
+        <button type="button" id="sosNavBtn" class="btn-nav-sos" title="Emergency Helplines">🚨 SOS</button>
+        <a href="index.html" class="btn btn-outline btn-sm">Skip to Home</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Authentication Content -->
+  <main>
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        
+        <!-- Header -->
+        <div class="auth-header">
+          <a href="index.html" class="auth-logo">
+            <span>✈️</span> TravelMate
+          </a>
+          <h1 class="auth-title" id="authTitle">Welcome Back</h1>
+          <p class="auth-subtitle" id="authSubtitle">Sign in to sync your trips, track expenses, and manage group splits.</p>
+        </div>
+
+        <!-- Auth Tabs: Sign In / Create Account -->
+        <div class="auth-tabs" role="tablist">
+          <button type="button" id="tabLoginBtn" class="auth-tab-btn active" role="tab" aria-selected="true">
+            Sign In
+          </button>
+          <button type="button" id="tabSignupBtn" class="auth-tab-btn" role="tab" aria-selected="false">
+            Create Account
+          </button>
+        </div>
+
+        <!-- 1. SIGN IN PANEL -->
+        <div id="loginPanel">
+          <!-- Alert Notification -->
+          <div id="loginAlert" class="alert alert-error hidden"></div>
+
+          <!-- Quick 1-Click Demo Logins for College Evaluators -->
+          <div class="auth-demo-box">
+            <div class="auth-demo-title">
+              <span>⚡</span> 1-Click College Demo Logins
+            </div>
+            <div class="auth-demo-grid">
+              <button type="button" class="btn-demo-user" data-email="avisneh@travelmate.com" data-pwd="password123">
+                <span><strong>Avisneh Kushwaha</strong> (Team Leader)</span>
+                <span style="font-size: 0.72rem; color: var(--primary);">Autofill &rarr;</span>
+              </button>
+              <button type="button" class="btn-demo-user" data-email="anuditya@travelmate.com" data-pwd="password123">
+                <span><strong>Anuditya Gautam</strong> (Member 1)</span>
+                <span style="font-size: 0.72rem; color: var(--primary);">Autofill &rarr;</span>
+              </button>
+              <button type="button" class="btn-demo-user" data-email="dipali@travelmate.com" data-pwd="password123">
+                <span><strong>Dipali Sinha</strong> (Member 2)</span>
+                <span style="font-size: 0.72rem; color: var(--primary);">Autofill &rarr;</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Login Form -->
+          <form id="loginForm" class="auth-form">
+            <div class="form-group">
+              <label for="loginEmail" class="form-label">Email Address <span class="req">*</span></label>
+              <input type="email" id="loginEmail" class="form-input" placeholder="e.g. yourname@domain.com" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <label for="loginPassword" class="form-label" style="margin-bottom: 0;">Password <span class="req">*</span></label>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">(Demo: password123)</span>
+              </div>
+              <div class="password-input-wrap">
+                <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
+                <button type="button" class="btn-toggle-pwd" data-target="loginPassword" title="Show/Hide Password">👁️</button>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem;">
+              <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text-muted);">
+                <input type="checkbox" id="rememberMe" checked>
+                <span>Remember me</span>
+              </label>
+              <a href="#" id="forgotPwdLink" style="color: var(--primary); font-size: 0.82rem; font-weight: 600;">Forgot Password?</a>
+            </div>
+
+            <button type="submit" id="loginSubmitBtn" class="btn btn-primary btn-md" style="width: 100%; margin-top: 0.5rem;">
+              Sign In to TravelMate &rarr;
+            </button>
+          </form>
+        </div>
+
+        <!-- 2. SIGN UP PANEL (Hidden by default) -->
+        <div id="signupPanel" class="hidden">
+          <!-- Alert Notification -->
+          <div id="signupAlert" class="alert alert-error hidden"></div>
+
+          <!-- Sign Up Form -->
+          <form id="signupForm" class="auth-form">
+            <div class="form-group">
+              <label for="signupName" class="form-label">Full Name <span class="req">*</span></label>
+              <input type="text" id="signupName" class="form-input" placeholder="e.g. Rahul Sharma" required autocomplete="name">
+            </div>
+
+            <div class="form-group">
+              <label for="signupEmail" class="form-label">Email Address <span class="req">*</span></label>
+              <input type="email" id="signupEmail" class="form-input" placeholder="e.g. rahul@example.com" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+              <label for="signupRole" class="form-label">Traveler Role</label>
+              <select id="signupRole" class="form-select">
+                <option value="Group Expense Manager">Group Expense Manager</option>
+                <option value="Backpacker">Backpacker</option>
+                <option value="Solo Explorer">Solo Explorer</option>
+                <option value="Team Leader">Team Leader</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="signupPassword" class="form-label">Create Password <span class="req">*</span></label>
+              <div class="password-input-wrap">
+                <input type="password" id="signupPassword" class="form-input" placeholder="Min. 6 characters" minlength="6" required autocomplete="new-password">
+                <button type="button" class="btn-toggle-pwd" data-target="signupPassword" title="Show/Hide Password">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="signupConfirmPassword" class="form-label">Confirm Password <span class="req">*</span></label>
+              <div class="password-input-wrap">
+                <input type="password" id="signupConfirmPassword" class="form-input" placeholder="Re-enter password" minlength="6" required autocomplete="new-password">
+                <button type="button" class="btn-toggle-pwd" data-target="signupConfirmPassword" title="Show/Hide Password">👁️</button>
+              </div>
+            </div>
+
+            <button type="submit" id="signupSubmitBtn" class="btn btn-primary btn-md" style="width: 100%; margin-top: 0.5rem;">
+              Create My Account &rarr;
+            </button>
+          </form>
+        </div>
+
+        <!-- Footer Links -->
+        <div class="auth-footer">
+          <p>
+            Prefer not to sign in now? 
+            <a href="index.html">Continue as Guest &rarr;</a>
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Emergency SOS Modal -->
+    <div id="sosModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title"><span>🚨</span> Emergency Tourist Helplines</h3>
+          <button type="button" class="modal-close-btn" id="closeSosBtn">&times;</button>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Verified 24x7 emergency contacts across India. Tap any button to place an immediate call.
+        </p>
+        <div class="sos-grid">
+          <div class="sos-card sos-card-primary">
+            <div>
+              <div class="sos-name">National Emergency</div>
+              <div class="sos-sub">All-in-one Emergency</div>
+            </div>
+            <a href="tel:112" class="sos-btn-call">📞 112</a>
+          </div>
+          <div class="sos-card">
+            <div>
+              <div class="sos-name">Tourist Helpline</div>
+              <div class="sos-sub">Ministry of Tourism (24x7)</div>
+            </div>
+            <a href="tel:1363" class="sos-btn-call">📞 1363</a>
+          </div>
+          <div class="sos-card">
+            <div>
+              <div class="sos-name">Police Control</div>
+              <div class="sos-sub">Immediate Police Assistance</div>
+            </div>
+            <a href="tel:100" class="sos-btn-call">📞 100</a>
+          </div>
+          <div class="sos-card">
+            <div>
+              <div class="sos-name">Ambulance / Medical</div>
+              <div class="sos-sub">Emergency Medical Care</div>
+            </div>
+            <a href="tel:108" class="sos-btn-call">📞 108</a>
+          </div>
+          <div class="sos-card">
+            <div>
+              <div class="sos-name">Women Safety</div>
+              <div class="sos-sub">National Women Helpline</div>
+            </div>
+            <a href="tel:1091" class="sos-btn-call">📞 1091</a>
+          </div>
+          <div class="sos-card">
+            <div>
+              <div class="sos-name">Highway Emergency</div>
+              <div class="sos-sub">NHAI Road Assistance</div>
+            </div>
+            <a href="tel:1033" class="sos-btn-call">📞 1033</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div>
+        <div class="footer-logo">
+          <span>✈️</span> TravelMate
+        </div>
+        <p>A simple, beginner-friendly travel planner and trip expense tracker.</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="destinations.html">Destinations</a></li>
+        <li><a href="budget.html">Trip Expenses</a></li>
+        <li><a href="about.html">About Us</a></li>
+        <li><a href="login.html">Sign In</a></li>
+      </ul>
+      <div>
+        <p>&copy; 2026 TravelMate. Built by Avisneh, Anuditya & Dipali.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main JavaScript File -->
+  <script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelMate - Plan Your Trip. Travel Smarter.</title>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-icon-wrap">✈️</div>
+        <div class="logo-text">Travel<span>Mate</span></div>
+      </a>
+
+      <!-- Mobile Menu Toggle Button -->
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation">
+        ☰
+      </button>
+
+      <!-- Navigation Links -->
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html" class="nav-link active">Home</a></li>
+          <li><a href="destinations.html" class="nav-link">Destinations</a></li>
+          <li><a href="budget.html" class="nav-link">Trip Expenses</a></li>
+          <li><a href="about.html" class="nav-link">About Us</a></li>
+          <li><a href="login.html" class="nav-link">Sign In</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions: Theme Toggle & Emergency SOS -->
+      <div class="nav-actions-group">
+        <button type="button" id="themeToggleBtn" class="btn-theme-toggle" title="Toggle Dark/Light Mode">🌙</button>
+        <button type="button" id="sosNavBtn" class="btn-nav-sos" title="Emergency Helplines">🚨 SOS</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span>✨</span> Smart Travel Planning & Expense Tracking
+          </div>
+          <h1 class="hero-title">
+            Plan Your Trip. <span>Travel Smarter.</span>
+          </h1>
+          <p class="hero-desc">
+            TravelMate helps you explore destinations and track real trip expenses among group members easily.
+          </p>
+          <div class="hero-actions">
+            <a href="budget.html" class="btn btn-primary btn-lg">Plan My Trip &rarr;</a>
+            <a href="budget.html?demo=true" class="btn btn-secondary btn-lg">🚀 Launch Live Demo</a>
+            <a href="destinations.html" class="btn btn-outline btn-lg">Explore Destinations</a>
+            <a href="login.html" class="btn btn-outline btn-lg">👤 Sign In / Register</a>
+          </div>
+          
+          <!-- Trust / Highlights Strip -->
+          <div class="hero-stats">
+            <div class="hero-stat-item">
+              <span>📍</span> <strong>6 Top Destinations</strong>
+            </div>
+            <div class="hero-stat-item">
+              <span>🎯</span> <strong>Budget Health Meter</strong>
+            </div>
+            <div class="hero-stat-item">
+              <span>⚡</span> <strong>Real Expense Tracker</strong>
+            </div>
+            <div class="hero-stat-item">
+              <span>👥</span> <strong>Who Owes Whom Settlements</strong>
+            </div>
+            <div class="hero-stat-item">
+              <span>📊</span> <strong>Excel & PDF Export</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Key Features</span>
+          <h2 class="section-title">Everything You Need To Plan & Track Confidently</h2>
+          <p class="section-subtitle">
+            Simple, transparent, and accurate tools designed to take the guesswork out of your travel expenses.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature Card 1 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrap">🗺️</div>
+            <h3 class="feature-title">Explore Destinations</h3>
+            <p class="feature-desc">
+              Discover top Indian travel spots with live category filters (Beaches, Hills, Heritage, Metros) and estimated daily budgets.
+            </p>
+            <a href="destinations.html" class="feature-link">Browse Destinations &rarr;</a>
+          </div>
+
+          <!-- Feature Card 2 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrap">🎯</div>
+            <h3 class="feature-title">Budget Health Meter</h3>
+            <p class="feature-desc">
+              Set target trip budgets and track your spending against them with live color-coded progress indicators.
+            </p>
+            <a href="budget.html" class="feature-link">Set Trip Budget &rarr;</a>
+          </div>
+
+          <!-- Feature Card 3 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrap">💰</div>
+            <h3 class="feature-title">Track Real Expenses</h3>
+            <p class="feature-desc">
+              Log group expenditures with categories (Stay, Food, Travel, Activities, Shopping). Edit or delete entries anytime.
+            </p>
+            <a href="budget.html" class="feature-link">Open Expense Tracker &rarr;</a>
+          </div>
+
+          <!-- Feature Card 4 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrap">👥</div>
+            <h3 class="feature-title">Fair Share & Settlements</h3>
+            <p class="feature-desc">
+              Automatic calculations show who paid what and direct debtor-to-creditor transfers to settle group debts effortlessly.
+            </p>
+            <a href="budget.html" class="feature-link">View Settlements &rarr;</a>
+          </div>
+
+          <!-- Feature Card 5 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrap">📊</div>
+            <h3 class="feature-title">Category Spending Analytics</h3>
+            <p class="feature-desc">
+              Visual proportion bars and percentage breakdowns show where your group's money went at a glance.
+            </p>
+            <a href="budget.html" class="feature-link">View Analytics &rarr;</a>
+          </div>
+
+          <!-- Feature Card 6 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrap">📥</div>
+            <h3 class="feature-title">Export to Excel & PDF</h3>
+            <p class="feature-desc">
+              Generate clean printable invoice-style trip reports or download an itemized spreadsheet with a single click.
+            </p>
+            <a href="budget.html" class="feature-link">Generate Reports &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Emergency SOS Modal -->
+    <div id="sosModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title"><span>🚨</span> Emergency Tourist Helplines</h3>
+          <button type="button" class="modal-close-btn" id="closeSosBtn">&times;</button>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Verified 24x7 emergency contacts across India. Tap any button to place an immediate call.
+        </p>
+        <div class="sos-grid">
+          <div class="sos-card sos-card-primary">
+            <div>
+              <div class="sos-name">National Emergency</div>
+              <div class="sos-sub">All-in-one Emergency</div>
+            </div>
+            <a href="tel:112" class="sos-btn-call">📞 112</a>
+          </div>
+          <div class="sos-card">
+            <div>
+              <div class="sos-name">Tourist Helpline</div>
+              <div class="sos-sub">Ministry of Tourism (24x7)</div>
+            </div>
+            <a href="tel:1363" class="sos-btn-call">📞 1363</a>
+          </div>
+          <div class="sos-card">
+            <div>
+              <div class="sos-name">Police Control</div>
+              <div class="sos-sub">Immediate Police Assistance</div>
+            </div>
+            <a href="tel:100" class="sos-btn-call">📞 100</a>
+          </div>
+          <div class="sos-card">
+            <div>
+              <div class="sos-name">Ambulance / Medical</div>
+              <div class="sos-sub">Emergency Medical Care</div>
+            </div>
+            <a href="tel:108" class="sos-btn-call">📞 108</a>
+          </div>
+          <div class="sos-card">
+            <div>
+              <div class="sos-name">Women Safety</div>
+              <div class="sos-sub">National Women Helpline</div>
+            </div>
+            <a href="tel:1091" class="sos-btn-call">📞 1091</a>
+          </div>
+          <div class="sos-card">
+            <div>
+              <div class="sos-name">Highway Emergency</div>
+              <div class="sos-sub">NHAI Road Assistance</div>
+            </div>
+            <a href="tel:1033" class="sos-btn-call">📞 1033</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div>
+        <div class="footer-logo">
+          <span>✈️</span> TravelMate
+        </div>
+        <p>A simple, beginner-friendly travel planner and trip expense tracker.</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="destinations.html">Destinations</a></li>
+        <li><a href="budget.html">Trip Expenses</a></li>
+        <li><a href="about.html">About Us</a></li>
+        <li><a href="login.html">Sign In</a></li>
+      </ul>
+      <div>
+        <p>&copy; 2026 TravelMate. Built by Avisneh, Anuditya & Dipali.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main JavaScript File -->
+  <script src="js/script.js"></script>
+</body>
+</html>
