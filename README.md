@@ -1,75 +1,99 @@
-# TravelMate ✈️ - Smart Travel Planner & Trip Expense Splitter
-> **College Mini-Project Submission**  
-> Built with pure **HTML5, CSS3, and Vanilla JavaScript** (Zero dependencies, 100% offline & client-side).
+# TravelMate ✈️ - Smart Travel Planner & Group Expense Splitter
+
+> A modern, responsive, and privacy-first travel planning platform built with pure **HTML5, CSS3, and Vanilla JavaScript**. Designed for solo backpackers, group travelers, and adventure planning with zero dependencies.
 
 ---
 
-## 🌟 Highlights & Key Features
+## 🌟 Key Features
 
-1. **🚀 1-Click Presentation Demo:**
-   - Click **"🚀 Load Sample Trip (Goa 4 Friends)"** on the Trip Expenses page to instantly populate a full 4-person Goa itinerary with 7 expenses.
-   - Shows live calculations, charts, member balances, and pairwise settlements in under 1 second.
-2. **🎯 Target Budget Health Meter:**
-   - Set an optional planned trip budget (e.g. ₹25,000).
-   - Live color-coded progress bar indicates spending health:
-     - 🟢 **Safe (≤ 80%):** Within budget, displays remaining funds.
-     - 🟡 **Warning (80–100%):** Near budget threshold.
-     - 🔴 **Over Budget (> 100%):** Shows exact amount exceeded.
-3. **📊 Visual Category Spending Analytics:**
-   - Pure CSS/SVG stacked distribution bar and category metric cards (Hotel, Food, Travel, Activities, Shopping, Other).
-   - Zero external chart libraries needed—fast and works 100% offline.
-4. **💸 Fair Share & Greedy Debt Settlements:**
-   - Automatically computes each member's total spend and fair share.
-   - Computes direct "Who Pays Whom" transfers using a greedy minimum-debt algorithm.
-5. **📥 Export to Excel (CSV) & Printable PDF Invoice:**
-   - 1-Click CSV export downloads clean spreadsheet data that opens in Microsoft Excel.
-   - Printable report formatted like a professional tax invoice using `@media print`.
-6. **🗺️ Destination Explorer & Live Filters:**
-   - Curated Indian destinations with daily budget estimates.
-   - Instant search bar and category filter tabs (Beaches, Hill Stations, Heritage, Metros).
-7. **🎒 Trip Packing Essentials Checklist:**
-   - Checkable travel essentials list saved in `localStorage` per trip.
+1. **🗺️ Destination Explorer & Live Budgeting:**
+   - Curated travel destinations across India with daily budget estimates, weather badges, and top attraction tags.
+   - Live search bar and instant category filters (Beaches, Hill Stations, Heritage, Metros).
+   - Direct "Plan Trip" button linking destination itineraries straight into the expense planner.
+
+2. **💸 Intelligent Group Expense Splitter & Settlement Math:**
+   - Multi-payer expense logging with categorized breakdowns (Stay, Food, Travel, Activities, Shopping).
+   - Real-time calculations of total trip cost, member spending, and fair per-person shares.
+   - **Greedy Debt Minimization Algorithm**: Computes the exact "Who Owes Whom" direct settlement transfers in the minimal number of transactions.
+
+3. **🎯 Target Budget Health Meter:**
+   - Set customizable planned trip budgets.
+   - Color-coded progress indicators:
+     - 🟢 **Safe (≤ 80%):** Spending within budget with remaining funds highlighted.
+     - 🟡 **Warning (80–100%):** Approaching budget limit.
+     - 🔴 **Over Budget (> 100%):** Highlights overspend amount immediately.
+
+4. **📊 Category Spending Analytics:**
+   - Pure CSS/SVG stacked distribution charts and category summary cards.
+   - 100% offline and dependency-free.
+
+5. **🔐 Complete Client-Side Authentication & Profile Management:**
+   - User account registration and secure login stored in `localStorage`.
+   - Dynamic user profile avatars and status in the navigation bar.
+   - Password recovery and reset flow.
+
+6. **📥 Instant Export to Excel (CSV) & Printable PDF Invoice:**
+   - 1-Click CSV export downloads clean spreadsheet data that opens in Microsoft Excel or Google Sheets.
+   - Formatted printable invoice using clean `@media print` CSS.
+
+7. **🎒 Itinerary Planner & Packing Checklist:**
+   - Interactive day-by-day activity scheduler with cost tracking.
+   - Per-trip checkable travel essentials checklist.
+
+8. **🚨 24x7 Emergency SOS Tourist Helplines:**
+   - One-tap access to national emergency, police, tourist helpline, and roadside assistance numbers.
 
 ---
 
 ## 📁 Project Structure
 
 ```text
-mini_project_TravelMate-main/
+TravelMate/
 │
-├── index.html                    # Homepage & Project Showcase
-├── destinations.html             # Destination Explorer with Live Filters
-├── budget.html                   # Multi-Trip Expense Tracker & Splitter
-├── about.html                    # About Project & Team Members
+├── index.html                    # Homepage & Platform Showcase
+├── destinations.html             # Destination Explorer with Live Search & Filters
+├── budget.html                   # Multi-Trip Expense Tracker & Settlement Engine
+├── about.html                    # About Platform, Creators & Contact Form
+├── login.html                    # User Sign In, Registration & Password Reset
 │
 ├── css/
-│   └── style.css                 # Complete Design System & Responsive Styles
+│   └── style.css                 # Complete Design System & Dark/Light Themes
 │
 ├── js/
-│   └── script.js                 # Complete Core JavaScript Engine
+│   ├── script.js                 # Core Application Engine & Settlement Math
+│   └── qrcode.min.js             # Client-Side QR Code Generator
 │
-├── PROJECT_REPORT.md             # Formal College Technical Project Report
-└── VIVA_QUESTIONS_AND_ANSWERS.md # 25 Curated College Viva Questions & Answers
+├── images/                       # Project Graphics & Assets
+├── launch.bat                    # 1-Click Windows Launcher
+├── serve.ps1                     # Lightweight Local Web Server
+├── PROJECT_REPORT.md             # Formal Technical Architecture Report
+└── README.md                     # Project Documentation
 ```
 
 ---
 
-## 🚀 How to Run the Project
+## 🚀 How to Run Locally
 
-1. **No Installation Required:** You do **not** need Node.js, Python, XAMPP, or any external database.
-2. Simply double-click **`index.html`** in this folder to open it in Google Chrome, Microsoft Edge, Firefox, or Safari.
-3. To present to your teacher:
-   - Open **`budget.html`** (or click **"🚀 Launch Live Demo"** from the homepage).
-   - Click **"🚀 Load Sample Trip (Goa 4 Friends)"** to instantly display all features.
-   - Show the **Budget Meter**, **Category Analytics**, **Pairwise Settlements**, and click **"Export to CSV"** / **"Print Trip Report"**.
+### Option 1: Double-Click Launcher (Windows)
+Double-click **`launch.bat`** in the project root directory. It will start the local server and open the web app in your default browser.
 
----
+### Option 2: PowerShell Web Server
+```powershell
+powershell -ExecutionPolicy Bypass -File .\serve.ps1
+```
+Then visit: `http://localhost:8000/index.html`
 
-## 📚 College Documentation & Viva Preparation
-
-- 📄 Read **[PROJECT_REPORT.md](file:///c:/Users/Anuditya%20Gautam/Downloads/mini_project_TravelMate-main/PROJECT_REPORT.md)** for the formal project synopsis, system architecture, and module descriptions.
-- 🎓 Read **[VIVA_QUESTIONS_AND_ANSWERS.md](file:///c:/Users/Anuditya%20Gautam/Downloads/mini_project_TravelMate-main/VIVA_QUESTIONS_AND_ANSWERS.md)** for 25 high-probability viva examination questions with easy-to-understand student answers.
+### Option 3: Direct Browser Launch
+Simply open `index.html` in any modern web browser (Google Chrome, Microsoft Edge, Firefox, Safari).
 
 ---
 
-© 2026 TravelMate. Designed for students, travelers, and college evaluations.
+## 👥 Contributors & Team
+
+- **Avisneh Kushwaha** — Full-Stack Architecture & Logic
+- **Anuditya Gautam** — UI/UX Design & Settlement Math
+- **Dipali Sinha** — QA, Usability & Documentation
+
+---
+
+© 2026 TravelMate. Built for seamless travel planning and group expense management.

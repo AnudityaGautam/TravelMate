@@ -101,7 +101,7 @@ sequenceDiagram
 ### Module 2: Multi-Trip Manager (`budget.html`)
 - Supports storing and switching between multiple trips (e.g. "Goa Trip", "Manali Tour").
 - Allows editing members, updating target budgets, and safe deletion with user confirmation.
-- Includes a dedicated **1-Click Sample Demo Trip** that populates a realistic 4-person Goa itinerary for presentation and viva demonstrations.
+- Includes a dedicated **Sample Itinerary Template** that populates a realistic 4-person Goa itinerary with expenses and schedule items.
 
 ### Module 3: Expense Management & CRUD
 - Form inputs validate payer, expense name, category, amount, and date.
@@ -169,8 +169,7 @@ sequenceDiagram
 
 ### Module 15: User Authentication & Role Management (Login & Sign Up)
 - Dedicated authentication portal (`login.html`) featuring dual-tabbed forms for Sign In and Account Registration.
-- Client-side credential validation, duplicate email prevention, password hashing/masking toggle, and role designation (Team Leader, Backpacker, Group Expense Manager, Solo Traveler).
-- Pre-seeded 1-click viva evaluation demo accounts for all team members (`avisneh@travelmate.com`, `anuditya@travelmate.com`, `dipali@travelmate.com`).
+- Client-side credential validation, duplicate email prevention, password hashing/masking toggle, role designation, and interactive password recovery modal.
 - Dynamic navigation bar session state reflecting active user avatar and name with 1-click logout capability.
 
 ---

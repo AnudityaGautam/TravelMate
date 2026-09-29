@@ -74,27 +74,6 @@
           <!-- Alert Notification -->
           <div id="loginAlert" class="alert alert-error hidden"></div>
 
-          <!-- Quick 1-Click Demo Logins for College Evaluators -->
-          <div class="auth-demo-box">
-            <div class="auth-demo-title">
-              <span>⚡</span> 1-Click College Demo Logins
-            </div>
-            <div class="auth-demo-grid">
-              <button type="button" class="btn-demo-user" data-email="avisneh@travelmate.com" data-pwd="password123">
-                <span><strong>Avisneh Kushwaha</strong> (Team Leader)</span>
-                <span style="font-size: 0.72rem; color: var(--primary);">Autofill &rarr;</span>
-              </button>
-              <button type="button" class="btn-demo-user" data-email="anuditya@travelmate.com" data-pwd="password123">
-                <span><strong>Anuditya Gautam</strong> (Member 1)</span>
-                <span style="font-size: 0.72rem; color: var(--primary);">Autofill &rarr;</span>
-              </button>
-              <button type="button" class="btn-demo-user" data-email="dipali@travelmate.com" data-pwd="password123">
-                <span><strong>Dipali Sinha</strong> (Member 2)</span>
-                <span style="font-size: 0.72rem; color: var(--primary);">Autofill &rarr;</span>
-              </button>
-            </div>
-          </div>
-
           <!-- Login Form -->
           <form id="loginForm" class="auth-form">
             <div class="form-group">
@@ -105,7 +84,6 @@
             <div class="form-group">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
                 <label for="loginPassword" class="form-label" style="margin-bottom: 0;">Password <span class="req">*</span></label>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">(Demo: password123)</span>
               </div>
               <div class="password-input-wrap">
                 <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
@@ -241,6 +219,43 @@
             <a href="tel:1033" class="sos-btn-call">📞 1033</a>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="forgotPwdModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title"><span>🔐</span> Reset Your Password</h3>
+          <button type="button" class="modal-close-btn" id="closeForgotPwdBtn">&times;</button>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Enter your registered email address and your new password to reset your account credentials.
+        </p>
+        <div id="resetPwdAlert" class="alert alert-error hidden" style="margin-bottom: 1rem;"></div>
+        <form id="resetPwdForm" class="auth-form">
+          <div class="form-group">
+            <label for="resetEmail" class="form-label">Registered Email Address <span class="req">*</span></label>
+            <input type="email" id="resetEmail" class="form-input" placeholder="e.g. yourname@domain.com" required>
+          </div>
+          <div class="form-group">
+            <label for="newPassword" class="form-label">New Password <span class="req">*</span></label>
+            <div class="password-input-wrap">
+              <input type="password" id="newPassword" class="form-input" placeholder="Min. 6 characters" minlength="6" required>
+              <button type="button" class="btn-toggle-pwd" data-target="newPassword" title="Show/Hide Password">👁️</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="confirmNewPassword" class="form-label">Confirm New Password <span class="req">*</span></label>
+            <div class="password-input-wrap">
+              <input type="password" id="confirmNewPassword" class="form-input" placeholder="Re-enter new password" minlength="6" required>
+              <button type="button" class="btn-toggle-pwd" data-target="confirmNewPassword" title="Show/Hide Password">👁️</button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-md" style="width: 100%; margin-top: 0.5rem;">
+            Update Password &rarr;
+          </button>
+        </form>
       </div>
     </div>
   </main>

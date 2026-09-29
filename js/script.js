@@ -35,6 +35,7 @@ function initApp() {
   initSosModal();
   initExpenseTracker();
   initDestinationsFilter();
+  initContactForm();
 }
 
 if (document.readyState === 'loading') {
@@ -290,9 +291,12 @@ function initAuth() {
   const authSubtitle = document.getElementById('authSubtitle');
   const loginAlert = document.getElementById('loginAlert');
   const signupAlert = document.getElementById('signupAlert');
-  const demoButtons = document.querySelectorAll('.btn-demo-user');
   const togglePwdButtons = document.querySelectorAll('.btn-toggle-pwd');
   const forgotPwdLink = document.getElementById('forgotPwdLink');
+  const forgotPwdModal = document.getElementById('forgotPwdModal');
+  const closeForgotPwdBtn = document.getElementById('closeForgotPwdBtn');
+  const resetPwdForm = document.getElementById('resetPwdForm');
+  const resetPwdAlert = document.getElementById('resetPwdAlert');
 
   // Tab switching
   if (tabLoginBtn && tabSignupBtn) {
@@ -338,27 +342,79 @@ function initAuth() {
     });
   });
 
-  // Demo user autofill
-  demoButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const email = btn.getAttribute('data-email');
-      const pwd = btn.getAttribute('data-pwd');
-      const emailInput = document.getElementById('loginEmail');
-      const pwdInput = document.getElementById('loginPassword');
-      if (emailInput && pwdInput) {
-        emailInput.value = email;
-        pwdInput.value = pwd;
-        btn.style.borderColor = 'var(--primary)';
-        setTimeout(() => { btn.style.borderColor = ''; }, 1000);
-      }
-    });
-  });
-
-  // Forgot password helper
-  if (forgotPwdLink) {
+  // Forgot password modal open / close / submit
+  if (forgotPwdLink && forgotPwdModal) {
     forgotPwdLink.addEventListener('click', (e) => {
       e.preventDefault();
-      alert('🔑 College Viva Demo: Use any of the 1-click team demo logins above with password "password123", or sign up with a new account!');
+      forgotPwdModal.classList.remove('hidden');
+      if (resetPwdAlert) resetPwdAlert.classList.add('hidden');
+    });
+  }
+
+  if (closeForgotPwdBtn && forgotPwdModal) {
+    closeForgotPwdBtn.addEventListener('click', () => {
+      forgotPwdModal.classList.add('hidden');
+    });
+  }
+
+  if (resetPwdForm) {
+    resetPwdForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const emailInput = document.getElementById('resetEmail');
+      const newPwdInput = document.getElementById('newPassword');
+      const confirmNewPwdInput = document.getElementById('confirmNewPassword');
+
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+      const newPwd = newPwdInput ? newPwdInput.value : '';
+      const confirmNewPwd = confirmNewPwdInput ? confirmNewPwdInput.value : '';
+
+      if (newPwd.length < 6) {
+        if (resetPwdAlert) {
+          resetPwdAlert.className = 'alert alert-error';
+          resetPwdAlert.textContent = 'Password must be at least 6 characters long.';
+          resetPwdAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (newPwd !== confirmNewPwd) {
+        if (resetPwdAlert) {
+          resetPwdAlert.className = 'alert alert-error';
+          resetPwdAlert.textContent = 'Passwords do not match.';
+          resetPwdAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const users = getUsers();
+      const userIndex = users.findIndex(u => u.email.toLowerCase() === email);
+
+      if (userIndex === -1) {
+        if (resetPwdAlert) {
+          resetPwdAlert.className = 'alert alert-error';
+          resetPwdAlert.textContent = 'No account found with this email address.';
+          resetPwdAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      users[userIndex].password = newPwd;
+      saveUsers(users);
+
+      if (resetPwdAlert) {
+        resetPwdAlert.className = 'alert alert-success';
+        resetPwdAlert.style.backgroundColor = '#ecfdf5';
+        resetPwdAlert.style.borderColor = '#a7f3d0';
+        resetPwdAlert.style.color = '#065f46';
+        resetPwdAlert.textContent = 'Password updated successfully! You can now sign in.';
+        resetPwdAlert.classList.remove('hidden');
+      }
+
+      setTimeout(() => {
+        if (forgotPwdModal) forgotPwdModal.classList.add('hidden');
+        const loginEmail = document.getElementById('loginEmail');
+        if (loginEmail) loginEmail.value = email;
+      }, 1500);
     });
   }
 
@@ -382,7 +438,7 @@ function initAuth() {
           loginAlert.style.backgroundColor = '#ecfdf5';
           loginAlert.style.borderColor = '#a7f3d0';
           loginAlert.style.color = '#065f46';
-          loginAlert.textContent = `🎉 Welcome back, ${user.name}! Redirecting to homepage...`;
+          loginAlert.textContent = `🎉 Welcome back, ${user.name}! Redirecting...`;
           loginAlert.classList.remove('hidden');
         }
         setTimeout(() => {
@@ -391,7 +447,7 @@ function initAuth() {
       } else {
         if (loginAlert) {
           loginAlert.className = 'alert alert-error';
-          loginAlert.textContent = 'Invalid email or password. Click any 1-click demo login above to test.';
+          loginAlert.textContent = 'Invalid email or password. Please verify and try again.';
           loginAlert.classList.remove('hidden');
         }
       }
@@ -2790,6 +2846,55 @@ function initDestinationsFilter() {
       applyFilters();
     });
   }
+}
+
+/**
+ * ----------------------------------------------------
+ * 4. About Page Contact & Feedback Form Handler
+ * ----------------------------------------------------
+ */
+function initContactForm() {
+  const contactForm = document.getElementById('contactForm');
+  const contactSuccessAlert = document.getElementById('contactSuccessAlert');
+
+  if (!contactForm) return;
+
+  contactForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('contactName')?.value.trim() || '';
+    const email = document.getElementById('contactEmail')?.value.trim() || '';
+    const subject = document.getElementById('contactSubject')?.value.trim() || '';
+    const message = document.getElementById('contactMessage')?.value.trim() || '';
+
+    if (!name || !email || !message) return;
+
+    // Save message locally
+    try {
+      const messages = JSON.parse(localStorage.getItem('travelMateContactMessages') || '[]');
+      messages.push({
+        id: 'msg_' + Date.now(),
+        name,
+        email,
+        subject,
+        message,
+        date: new Date().toISOString()
+      });
+      localStorage.setItem('travelMateContactMessages', JSON.stringify(messages));
+    } catch (err) {
+      console.warn('Could not save message to localStorage', err);
+    }
+
+    if (contactSuccessAlert) {
+      contactSuccessAlert.className = 'alert alert-success';
+      contactSuccessAlert.style.backgroundColor = '#ecfdf5';
+      contactSuccessAlert.style.borderColor = '#a7f3d0';
+      contactSuccessAlert.style.color = '#065f46';
+      contactSuccessAlert.textContent = `Thank you, ${name}! Your message has been received. Our team will get back to you shortly.`;
+      contactSuccessAlert.classList.remove('hidden');
+    }
+
+    contactForm.reset();
+  });
 }
 
 

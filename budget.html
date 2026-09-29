@@ -62,27 +62,6 @@
         <div class="tracker-layout">
 
           <!-- ========================================================= -->
-          <!-- QUICK PRESENTATION DEMO BANNER (FOR COLLEGE EVALUATION)   -->
-          <!-- ========================================================= -->
-          <div class="demo-banner">
-            <div class="demo-banner-content">
-              <div class="demo-banner-icon">✨</div>
-              <div>
-                <div class="demo-banner-title">College Viva & Evaluation Demo</div>
-                <div class="demo-banner-desc">Click to load a pre-configured 4-member Goa Trip with 7 realistic expenses to instantly showcase all calculations, charts, and debt settlements to your evaluator.</div>
-              </div>
-            </div>
-            <div class="demo-banner-actions">
-              <button type="button" id="loadDemoTripBtn" class="btn-demo-load">
-                <span>🚀</span> Load Sample Trip (Goa 4 Friends)
-              </button>
-              <button type="button" id="resetAllDataBtn" class="btn-demo-reset" title="Clear all local data and reset">
-                Reset All
-              </button>
-            </div>
-          </div>
-
-          <!-- ========================================================= -->
           <!-- 0. MY TRIPS DASHBOARD                                     -->
           <!-- ========================================================= -->
           <div id="myTripsSection" class="my-trips-section">
@@ -90,14 +69,20 @@
               <div>
                 <span class="panel-tag">TRIP MANAGEMENT</span>
                 <h2 class="panel-title">My Trips</h2>
-                <p class="panel-desc">Switch between multiple trips or create a new one.</p>
+                <p class="panel-desc">Manage all your travel itineraries, split expenses, and track settlements.</p>
               </div>
-              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <button type="button" id="loadDemoTripBtn" class="btn btn-outline btn-md" title="Load a pre-configured Goa sample itinerary">
+                  ✨ Sample Template
+                </button>
                 <button type="button" id="btnOpenImportTrip" class="btn btn-outline btn-md">
                   📥 Import Trip
                 </button>
                 <button id="btnCreateNewTrip" class="btn btn-primary btn-md">
                   + Create New Trip
+                </button>
+                <button type="button" id="resetAllDataBtn" class="btn btn-outline btn-sm" title="Clear local data" style="color: #ef4444; border-color: rgba(239,68,68,0.25);">
+                  🗑️ Reset
                 </button>
               </div>
             </div>
