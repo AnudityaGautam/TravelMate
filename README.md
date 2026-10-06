@@ -27,10 +27,17 @@
    - Pure CSS/SVG stacked distribution charts and category summary cards.
    - 100% offline and dependency-free.
 
-5. **🔐 Complete Client-Side Authentication & Profile Management:**
-   - User account registration and secure login stored in `localStorage`.
-   - Dynamic user profile avatars and status in the navigation bar.
+5. **🔐 Two-Factor OTP Authentication & Profile Management:**
+   - User account registration and secure login protected by 6-digit OTP verification.
+   - Flexible delivery channels: **Gmail (Email)** and **WhatsApp Click-to-Chat**.
+   - Interactive verification UI with auto-advance digit boxes, 60-second resend timer, and 1-click test fill helper.
+   - Floating interactive notification toast with audio chime simulating incoming Gmail and WhatsApp codes.
+   - Dynamic user profile avatars and role chips in the navigation bar.
    - Password recovery and reset flow.
+
+6. **🌓 Zero-Flicker Dark & Light Mode System:**
+   - Full dark/light mode system with pre-render head bootstrap script preventing theme flash.
+   - High-contrast accessible styling for all cards, form inputs on focus, active trip banners, and debt settlement tables.
 
 6. **📥 Instant Export to Excel (CSV) & Printable PDF Invoice:**
    - 1-Click CSV export downloads clean spreadsheet data that opens in Microsoft Excel or Google Sheets.

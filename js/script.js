@@ -52,28 +52,37 @@ if (document.readyState === 'loading') {
 function initTheme() {
   const themeToggleBtn = document.getElementById('themeToggleBtn');
   const savedTheme = localStorage.getItem('travelMateTheme');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
   
-  if (savedTheme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    if (themeToggleBtn) themeToggleBtn.textContent = '☀️';
-  } else {
-    document.documentElement.removeAttribute('data-theme');
-    if (themeToggleBtn) themeToggleBtn.textContent = '🌙';
+  function applyTheme(dark) {
+    if (dark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('travelMateTheme', 'dark');
+      if (themeToggleBtn) {
+        themeToggleBtn.textContent = '☀️';
+        themeToggleBtn.setAttribute('title', 'Switch to Light Mode');
+        themeToggleBtn.setAttribute('aria-label', 'Switch to Light Mode');
+      }
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('travelMateTheme', 'light');
+      if (themeToggleBtn) {
+        themeToggleBtn.textContent = '🌙';
+        themeToggleBtn.setAttribute('title', 'Switch to Dark Mode');
+        themeToggleBtn.setAttribute('aria-label', 'Switch to Dark Mode');
+      }
+    }
   }
 
+  // Initial sync with DOM state
+  applyTheme(isDark);
+
   if (themeToggleBtn) {
-    themeToggleBtn.addEventListener('click', () => {
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      if (isDark) {
-        document.documentElement.removeAttribute('data-theme');
-        localStorage.setItem('travelMateTheme', 'light');
-        themeToggleBtn.textContent = '🌙';
-      } else {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('travelMateTheme', 'dark');
-        themeToggleBtn.textContent = '☀️';
-      }
-    });
+    themeToggleBtn.onclick = () => {
+      const currentlyDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      applyTheme(!currentlyDark);
+    };
   }
 }
 
@@ -280,17 +289,33 @@ function initAuth() {
   // Pre-seed default team accounts if empty
   getUsers();
 
+  // Active OTP session state
+  let currentOtpSession = {
+    active: false,
+    code: null,
+    channel: 'gmail', // 'gmail' or 'whatsapp'
+    target: '',
+    purpose: 'login', // 'login' or 'signup'
+    payload: null,
+    expiresAt: 0,
+    countdownTimer: null
+  };
+
   // Login & Sign Up page DOM elements
   const loginForm = document.getElementById('loginForm');
   const signupForm = document.getElementById('signupForm');
+  const otpForm = document.getElementById('otpForm');
   const tabLoginBtn = document.getElementById('tabLoginBtn');
   const tabSignupBtn = document.getElementById('tabSignupBtn');
+  const authTabsNav = document.getElementById('authTabsNav');
   const loginPanel = document.getElementById('loginPanel');
   const signupPanel = document.getElementById('signupPanel');
+  const otpPanel = document.getElementById('otpPanel');
   const authTitle = document.getElementById('authTitle');
   const authSubtitle = document.getElementById('authSubtitle');
   const loginAlert = document.getElementById('loginAlert');
   const signupAlert = document.getElementById('signupAlert');
+  const otpAlert = document.getElementById('otpAlert');
   const togglePwdButtons = document.querySelectorAll('.btn-toggle-pwd');
   const forgotPwdLink = document.getElementById('forgotPwdLink');
   const forgotPwdModal = document.getElementById('forgotPwdModal');
@@ -298,7 +323,96 @@ function initAuth() {
   const resetPwdForm = document.getElementById('resetPwdForm');
   const resetPwdAlert = document.getElementById('resetPwdAlert');
 
-  // Tab switching
+  // Channel toggles for Login
+  const loginGmailLabel = document.getElementById('loginChannelGmailLabel');
+  const loginWhatsappLabel = document.getElementById('loginChannelWhatsappLabel');
+  const loginWhatsappWrap = document.getElementById('loginWhatsappWrap');
+  const loginWhatsappPhone = document.getElementById('loginWhatsappPhone');
+
+  // Channel toggles for Signup
+  const signupGmailLabel = document.getElementById('signupChannelGmailLabel');
+  const signupWhatsappLabel = document.getElementById('signupChannelWhatsappLabel');
+  const signupWhatsappWrap = document.getElementById('signupWhatsappWrap');
+  const signupWhatsappPhone = document.getElementById('signupWhatsappPhone');
+
+  // OTP Controls
+  const otpDigits = document.querySelectorAll('.otp-digit');
+  const btnResendOtp = document.getElementById('btnResendOtp');
+  const otpCountdown = document.getElementById('otpCountdown');
+  const otpTimerText = document.getElementById('otpTimerText');
+  const btnAutoFillOtp = document.getElementById('btnAutoFillOtp');
+  const btnCancelOtp = document.getElementById('btnCancelOtp');
+  const whatsappActionBox = document.getElementById('whatsappActionBox');
+  const btnOpenWhatsApp = document.getElementById('btnOpenWhatsApp');
+  const otpTargetDisplay = document.getElementById('otpTargetDisplay');
+
+  // Floating Toast
+  const otpToast = document.getElementById('otpSimulatorToast');
+  const toastIcon = document.getElementById('toastIcon');
+  const toastChannelName = document.getElementById('toastChannelName');
+  const toastCodeDisplay = document.getElementById('toastCodeDisplay');
+  const toastCloseBtn = document.getElementById('toastCloseBtn');
+
+  // Demo user quick fill buttons
+  const demoUserBtns = document.querySelectorAll('.btn-demo-user');
+  demoUserBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const email = btn.getAttribute('data-email');
+      const pwd = btn.getAttribute('data-pwd');
+      const phone = btn.getAttribute('data-phone');
+      const emailInput = document.getElementById('loginEmail');
+      const pwdInput = document.getElementById('loginPassword');
+      if (emailInput) emailInput.value = email || '';
+      if (pwdInput) pwdInput.value = pwd || '';
+      if (loginWhatsappPhone && phone) loginWhatsappPhone.value = phone;
+      if (loginAlert) loginAlert.classList.add('hidden');
+    });
+  });
+
+  // 1. Channel Selector Setup
+  if (loginGmailLabel && loginWhatsappLabel) {
+    loginGmailLabel.addEventListener('click', () => {
+      loginGmailLabel.classList.add('active');
+      loginWhatsappLabel.classList.remove('active');
+      const r = loginGmailLabel.querySelector('input[type="radio"]');
+      if (r) r.checked = true;
+      if (loginWhatsappWrap) loginWhatsappWrap.classList.add('hidden');
+    });
+
+    loginWhatsappLabel.addEventListener('click', () => {
+      loginWhatsappLabel.classList.add('active');
+      loginGmailLabel.classList.remove('active');
+      const r = loginWhatsappLabel.querySelector('input[type="radio"]');
+      if (r) r.checked = true;
+      if (loginWhatsappWrap) {
+        loginWhatsappWrap.classList.remove('hidden');
+        if (loginWhatsappPhone) loginWhatsappPhone.focus();
+      }
+    });
+  }
+
+  if (signupGmailLabel && signupWhatsappLabel) {
+    signupGmailLabel.addEventListener('click', () => {
+      signupGmailLabel.classList.add('active');
+      signupWhatsappLabel.classList.remove('active');
+      const r = signupGmailLabel.querySelector('input[type="radio"]');
+      if (r) r.checked = true;
+      if (signupWhatsappWrap) signupWhatsappWrap.classList.add('hidden');
+    });
+
+    signupWhatsappLabel.addEventListener('click', () => {
+      signupWhatsappLabel.classList.add('active');
+      signupGmailLabel.classList.remove('active');
+      const r = signupWhatsappLabel.querySelector('input[type="radio"]');
+      if (r) r.checked = true;
+      if (signupWhatsappWrap) {
+        signupWhatsappWrap.classList.remove('hidden');
+        if (signupWhatsappPhone) signupWhatsappPhone.focus();
+      }
+    });
+  }
+
+  // 2. Tab switching
   if (tabLoginBtn && tabSignupBtn) {
     tabLoginBtn.addEventListener('click', () => {
       tabLoginBtn.classList.add('active');
@@ -307,8 +421,10 @@ function initAuth() {
       tabSignupBtn.setAttribute('aria-selected', 'false');
       if (loginPanel) loginPanel.classList.remove('hidden');
       if (signupPanel) signupPanel.classList.add('hidden');
+      if (otpPanel) otpPanel.classList.add('hidden');
+      if (authTabsNav) authTabsNav.classList.remove('hidden');
       if (authTitle) authTitle.textContent = 'Welcome Back';
-      if (authSubtitle) authSubtitle.textContent = 'Sign in to sync your trips, track expenses, and manage group splits.';
+      if (authSubtitle) authSubtitle.textContent = 'Sign in to sync your trips, track expenses, and manage group splits with OTP verification.';
       if (loginAlert) loginAlert.classList.add('hidden');
     });
 
@@ -319,13 +435,15 @@ function initAuth() {
       tabLoginBtn.setAttribute('aria-selected', 'false');
       if (signupPanel) signupPanel.classList.remove('hidden');
       if (loginPanel) loginPanel.classList.add('hidden');
+      if (otpPanel) otpPanel.classList.add('hidden');
+      if (authTabsNav) authTabsNav.classList.remove('hidden');
       if (authTitle) authTitle.textContent = 'Create an Account';
-      if (authSubtitle) authSubtitle.textContent = 'Join TravelMate to start planning trips and splitting expenses.';
+      if (authSubtitle) authSubtitle.textContent = 'Join TravelMate to start planning trips, setting budgets, and splitting expenses.';
       if (signupAlert) signupAlert.classList.add('hidden');
     });
   }
 
-  // Password visibility toggle
+  // 3. Password visibility toggle
   togglePwdButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-target');
@@ -342,7 +460,423 @@ function initAuth() {
     });
   });
 
-  // Forgot password modal open / close / submit
+  // 4. Audio Notification Chime Helper (Web Audio API)
+  function playOtpChime() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // Note D5
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // Note A5
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch (e) {
+      // Audio autoplay policy fallback
+    }
+  }
+
+  // 5. Floating Toast Notification
+  function showOtpToast(channel, target, code) {
+    if (!otpToast) return;
+    if (channel === 'whatsapp') {
+      otpToast.className = 'otp-toast whatsapp-toast';
+      if (toastIcon) toastIcon.textContent = '💬';
+      if (toastChannelName) toastChannelName.textContent = `WhatsApp Code (${target})`;
+    } else {
+      otpToast.className = 'otp-toast gmail-toast';
+      if (toastIcon) toastIcon.textContent = '📧';
+      if (toastChannelName) toastChannelName.textContent = `Gmail Code (${target})`;
+    }
+    if (toastCodeDisplay) toastCodeDisplay.textContent = code;
+    otpToast.classList.remove('hidden');
+    playOtpChime();
+
+    // Clicking toast auto-fills the OTP
+    otpToast.onclick = (e) => {
+      if (e.target.id === 'toastCloseBtn' || e.target.classList.contains('toast-close')) {
+        otpToast.classList.add('hidden');
+        return;
+      }
+      fillOtp(code);
+      otpToast.classList.add('hidden');
+    };
+
+    if (toastCloseBtn) {
+      toastCloseBtn.onclick = (e) => {
+        e.stopPropagation();
+        otpToast.classList.add('hidden');
+      };
+    }
+
+    setTimeout(() => {
+      if (otpToast) otpToast.classList.add('hidden');
+    }, 12000);
+  }
+
+  // 6. OTP Digit Input Helpers
+  function clearOtpDigits() {
+    otpDigits.forEach(d => { d.value = ''; });
+    if (otpDigits[0]) otpDigits[0].focus();
+  }
+
+  function fillOtp(code) {
+    const chars = code.toString().split('');
+    otpDigits.forEach((d, i) => {
+      d.value = chars[i] || '';
+    });
+    if (otpDigits[otpDigits.length - 1]) otpDigits[otpDigits.length - 1].focus();
+  }
+
+  function getEnteredOtp() {
+    let code = '';
+    otpDigits.forEach(d => { code += d.value.trim(); });
+    return code;
+  }
+
+  // Setup 6-digit box auto-advance, backspace, and paste events
+  otpDigits.forEach((digit, idx) => {
+    digit.addEventListener('input', (e) => {
+      const val = e.target.value.replace(/[^0-9]/g, '');
+      e.target.value = val ? val[0] : '';
+      if (val && idx < otpDigits.length - 1) {
+        otpDigits[idx + 1].focus();
+      }
+    });
+
+    digit.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+        otpDigits[idx - 1].focus();
+      }
+    });
+
+    digit.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+      if (text) {
+        fillOtp(text.slice(0, 6));
+      }
+    });
+  });
+
+  // 7. OTP Countdown Timer
+  function startOtpCountdown(seconds) {
+    if (currentOtpSession.countdownTimer) {
+      clearInterval(currentOtpSession.countdownTimer);
+    }
+    let remaining = seconds;
+    if (btnResendOtp) btnResendOtp.disabled = true;
+    if (otpCountdown) otpCountdown.textContent = remaining;
+    if (otpTimerText) otpTimerText.style.display = 'inline';
+
+    currentOtpSession.countdownTimer = setInterval(() => {
+      remaining--;
+      if (otpCountdown) otpCountdown.textContent = remaining;
+      if (remaining <= 0) {
+        clearInterval(currentOtpSession.countdownTimer);
+        currentOtpSession.countdownTimer = null;
+        if (btnResendOtp) btnResendOtp.disabled = false;
+        if (otpTimerText) otpTimerText.style.display = 'none';
+      }
+    }, 1000);
+  }
+
+  // 8. Generate & Dispatch OTP
+  function dispatchOtp(channel, target, purpose, payload) {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 min validity
+
+    currentOtpSession = {
+      active: true,
+      code,
+      channel,
+      target,
+      purpose,
+      payload,
+      expiresAt,
+      countdownTimer: null
+    };
+
+    // If WhatsApp channel, configure Click-to-Chat link
+    if (channel === 'whatsapp') {
+      const cleanPhone = target.replace(/[^0-9]/g, '');
+      const waMsg = encodeURIComponent(`Your TravelMate verification OTP is ${code}. Valid for 5 minutes.`);
+      const waUrl = cleanPhone ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${waMsg}` : `https://api.whatsapp.com/send?text=${waMsg}`;
+      if (btnOpenWhatsApp) btnOpenWhatsApp.href = waUrl;
+      if (whatsappActionBox) whatsappActionBox.classList.remove('hidden');
+    } else {
+      if (whatsappActionBox) whatsappActionBox.classList.add('hidden');
+    }
+
+    // Update texts in OTP Panel
+    if (otpTargetDisplay) {
+      otpTargetDisplay.textContent = channel === 'whatsapp' ? `your WhatsApp (${target})` : `your Gmail (${target})`;
+    }
+
+    if (otpAlert) {
+      otpAlert.className = 'alert alert-info';
+      otpAlert.innerHTML = channel === 'whatsapp'
+        ? `💬 6-Digit security OTP sent to WhatsApp: <strong>${target}</strong>`
+        : `📧 6-Digit security OTP sent to Gmail: <strong>${target}</strong>`;
+      otpAlert.classList.remove('hidden');
+    }
+
+    // Switch view to OTP Panel
+    if (loginPanel) loginPanel.classList.add('hidden');
+    if (signupPanel) signupPanel.classList.add('hidden');
+    if (authTabsNav) authTabsNav.classList.add('hidden');
+    if (otpPanel) otpPanel.classList.remove('hidden');
+
+    if (authTitle) authTitle.textContent = 'Two-Factor OTP Verification';
+    if (authSubtitle) authSubtitle.textContent = `Enter the 6-digit code sent to your ${channel === 'whatsapp' ? 'WhatsApp' : 'Gmail'} to verify your identity.`;
+
+    clearOtpDigits();
+    startOtpCountdown(60);
+    showOtpToast(channel, target, code);
+  }
+
+  // Resend OTP button
+  if (btnResendOtp) {
+    btnResendOtp.addEventListener('click', () => {
+      if (!currentOtpSession.active) return;
+      dispatchOtp(currentOtpSession.channel, currentOtpSession.target, currentOtpSession.purpose, currentOtpSession.payload);
+      if (otpAlert) {
+        otpAlert.className = 'alert alert-success';
+        otpAlert.textContent = 'A new 6-digit OTP has been sent!';
+        otpAlert.classList.remove('hidden');
+      }
+    });
+  }
+
+  // Auto-Fill OTP button for rapid testing
+  if (btnAutoFillOtp) {
+    btnAutoFillOtp.addEventListener('click', () => {
+      if (currentOtpSession.code) {
+        fillOtp(currentOtpSession.code);
+        if (otpAlert) {
+          otpAlert.className = 'alert alert-success';
+          otpAlert.textContent = `Auto-filled verification code: ${currentOtpSession.code}`;
+          otpAlert.classList.remove('hidden');
+        }
+      }
+    });
+  }
+
+  // Cancel / Back to login or signup
+  if (btnCancelOtp) {
+    btnCancelOtp.addEventListener('click', () => {
+      if (currentOtpSession.countdownTimer) {
+        clearInterval(currentOtpSession.countdownTimer);
+      }
+      currentOtpSession.active = false;
+      if (otpPanel) otpPanel.classList.add('hidden');
+      if (authTabsNav) authTabsNav.classList.remove('hidden');
+
+      if (currentOtpSession.purpose === 'signup') {
+        if (signupPanel) signupPanel.classList.remove('hidden');
+        if (tabSignupBtn) tabSignupBtn.click();
+      } else {
+        if (loginPanel) loginPanel.classList.remove('hidden');
+        if (tabLoginBtn) tabLoginBtn.click();
+      }
+    });
+  }
+
+  // 9. Handle OTP Verification Submit
+  if (otpForm) {
+    otpForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const enteredCode = getEnteredOtp();
+
+      if (enteredCode.length !== 6) {
+        if (otpAlert) {
+          otpAlert.className = 'alert alert-error';
+          otpAlert.textContent = 'Please enter all 6 digits of the OTP code.';
+          otpAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (Date.now() > currentOtpSession.expiresAt) {
+        if (otpAlert) {
+          otpAlert.className = 'alert alert-error';
+          otpAlert.textContent = 'This verification code has expired. Please click "Resend OTP".';
+          otpAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (enteredCode !== currentOtpSession.code) {
+        if (otpAlert) {
+          otpAlert.className = 'alert alert-error';
+          otpAlert.textContent = 'Incorrect verification code. Please check and try again.';
+          otpAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      // Success! Perform appropriate action
+      if (currentOtpSession.countdownTimer) {
+        clearInterval(currentOtpSession.countdownTimer);
+      }
+
+      if (currentOtpSession.purpose === 'login') {
+        const user = currentOtpSession.payload;
+        setCurrentUser(user);
+        if (otpAlert) {
+          otpAlert.className = 'alert alert-success';
+          otpAlert.textContent = `🎉 Verification successful! Welcome back, ${user.name}! Redirecting...`;
+          otpAlert.classList.remove('hidden');
+        }
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 800);
+      } else if (currentOtpSession.purpose === 'signup') {
+        const newUser = currentOtpSession.payload;
+        const users = getUsers();
+        users.push(newUser);
+        saveUsers(users);
+        setCurrentUser(newUser);
+        if (otpAlert) {
+          otpAlert.className = 'alert alert-success';
+          otpAlert.textContent = `🎉 Account verified and created! Welcome, ${newUser.name}! Redirecting...`;
+          otpAlert.classList.remove('hidden');
+        }
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 800);
+      }
+    });
+  }
+
+  // 10. Handle Login Form Submit (Initiates OTP)
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const emailInput = document.getElementById('loginEmail');
+      const pwdInput = document.getElementById('loginPassword');
+
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+      const password = pwdInput ? pwdInput.value : '';
+
+      const users = getUsers();
+      const user = users.find(u => u.email.toLowerCase() === email && u.password === password);
+
+      if (!user) {
+        if (loginAlert) {
+          loginAlert.className = 'alert alert-error';
+          loginAlert.textContent = 'Invalid email or password. Please verify and try again.';
+          loginAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      // Determine selected channel: Gmail or WhatsApp
+      const selectedChannelRadio = document.querySelector('input[name="loginOtpChannel"]:checked');
+      const channel = selectedChannelRadio ? selectedChannelRadio.value : 'gmail';
+      let target = email;
+
+      if (channel === 'whatsapp') {
+        const phoneVal = loginWhatsappPhone ? loginWhatsappPhone.value.trim() : '';
+        if (!phoneVal) {
+          if (loginAlert) {
+            loginAlert.className = 'alert alert-error';
+            loginAlert.textContent = 'Please enter your WhatsApp mobile number.';
+            loginAlert.classList.remove('hidden');
+          }
+          if (loginWhatsappPhone) loginWhatsappPhone.focus();
+          return;
+        }
+        target = phoneVal;
+      }
+
+      // Dispatch OTP and switch to OTP panel
+      dispatchOtp(channel, target, 'login', user);
+    });
+  }
+
+  // 11. Handle Sign Up Form Submit (Initiates OTP)
+  if (signupForm) {
+    signupForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById('signupName');
+      const emailInput = document.getElementById('signupEmail');
+      const roleInput = document.getElementById('signupRole');
+      const pwdInput = document.getElementById('signupPassword');
+      const confirmPwdInput = document.getElementById('signupConfirmPassword');
+
+      const name = nameInput ? nameInput.value.trim() : '';
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+      const role = roleInput ? roleInput.value : 'Traveler';
+      const password = pwdInput ? pwdInput.value : '';
+      const confirmPassword = confirmPwdInput ? confirmPwdInput.value : '';
+
+      if (!name || !email || !password) {
+        showSignupError('Please fill in all required fields.');
+        return;
+      }
+
+      if (password.length < 6) {
+        showSignupError('Password must be at least 6 characters long.');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showSignupError('Passwords do not match. Please verify.');
+        return;
+      }
+
+      const users = getUsers();
+      const existing = users.find(u => u.email.toLowerCase() === email);
+      if (existing) {
+        showSignupError('An account with this email already exists. Please sign in instead.');
+        return;
+      }
+
+      // Determine selected channel
+      const selectedChannelRadio = document.querySelector('input[name="signupOtpChannel"]:checked');
+      const channel = selectedChannelRadio ? selectedChannelRadio.value : 'gmail';
+      let target = email;
+      const phoneVal = signupWhatsappPhone ? signupWhatsappPhone.value.trim() : '';
+
+      if (channel === 'whatsapp') {
+        if (!phoneVal) {
+          showSignupError('Please enter your WhatsApp mobile number to receive the verification OTP.');
+          if (signupWhatsappPhone) signupWhatsappPhone.focus();
+          return;
+        }
+        target = phoneVal;
+      }
+
+      const newUser = {
+        name,
+        email,
+        password,
+        role,
+        phone: phoneVal || '',
+        createdAt: new Date().toISOString()
+      };
+
+      // Dispatch OTP and switch to OTP panel
+      dispatchOtp(channel, target, 'signup', newUser);
+    });
+
+    function showSignupError(msg) {
+      if (signupAlert) {
+        signupAlert.className = 'alert alert-error';
+        signupAlert.textContent = msg;
+        signupAlert.classList.remove('hidden');
+      }
+    }
+  }
+
+  // 12. Forgot password modal open / close / submit
   if (forgotPwdLink && forgotPwdModal) {
     forgotPwdLink.addEventListener('click', (e) => {
       e.preventDefault();
@@ -403,9 +937,6 @@ function initAuth() {
 
       if (resetPwdAlert) {
         resetPwdAlert.className = 'alert alert-success';
-        resetPwdAlert.style.backgroundColor = '#ecfdf5';
-        resetPwdAlert.style.borderColor = '#a7f3d0';
-        resetPwdAlert.style.color = '#065f46';
         resetPwdAlert.textContent = 'Password updated successfully! You can now sign in.';
         resetPwdAlert.classList.remove('hidden');
       }
@@ -416,115 +947,6 @@ function initAuth() {
         if (loginEmail) loginEmail.value = email;
       }, 1500);
     });
-  }
-
-  // Handle Login Form Submit
-  if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const emailInput = document.getElementById('loginEmail');
-      const pwdInput = document.getElementById('loginPassword');
-
-      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
-      const password = pwdInput ? pwdInput.value : '';
-
-      const users = getUsers();
-      const user = users.find(u => u.email.toLowerCase() === email && u.password === password);
-
-      if (user) {
-        setCurrentUser(user);
-        if (loginAlert) {
-          loginAlert.className = 'alert alert-success';
-          loginAlert.style.backgroundColor = '#ecfdf5';
-          loginAlert.style.borderColor = '#a7f3d0';
-          loginAlert.style.color = '#065f46';
-          loginAlert.textContent = `🎉 Welcome back, ${user.name}! Redirecting...`;
-          loginAlert.classList.remove('hidden');
-        }
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 700);
-      } else {
-        if (loginAlert) {
-          loginAlert.className = 'alert alert-error';
-          loginAlert.textContent = 'Invalid email or password. Please verify and try again.';
-          loginAlert.classList.remove('hidden');
-        }
-      }
-    });
-  }
-
-  // Handle Sign Up Form Submit
-  if (signupForm) {
-    signupForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const nameInput = document.getElementById('signupName');
-      const emailInput = document.getElementById('signupEmail');
-      const roleInput = document.getElementById('signupRole');
-      const pwdInput = document.getElementById('signupPassword');
-      const confirmPwdInput = document.getElementById('signupConfirmPassword');
-
-      const name = nameInput ? nameInput.value.trim() : '';
-      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
-      const role = roleInput ? roleInput.value : 'Traveler';
-      const password = pwdInput ? pwdInput.value : '';
-      const confirmPassword = confirmPwdInput ? confirmPwdInput.value : '';
-
-      if (!name || !email || !password) {
-        showSignupError('Please fill in all required fields.');
-        return;
-      }
-
-      if (password.length < 6) {
-        showSignupError('Password must be at least 6 characters long.');
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        showSignupError('Passwords do not match. Please verify.');
-        return;
-      }
-
-      const users = getUsers();
-      const existing = users.find(u => u.email.toLowerCase() === email);
-      if (existing) {
-        showSignupError('An account with this email already exists. Please sign in instead.');
-        return;
-      }
-
-      const newUser = {
-        name,
-        email,
-        password,
-        role,
-        createdAt: new Date().toISOString()
-      };
-
-      users.push(newUser);
-      saveUsers(users);
-      setCurrentUser(newUser);
-
-      if (signupAlert) {
-        signupAlert.className = 'alert alert-success';
-        signupAlert.style.backgroundColor = '#ecfdf5';
-        signupAlert.style.borderColor = '#a7f3d0';
-        signupAlert.style.color = '#065f46';
-        signupAlert.textContent = `🎉 Account created successfully! Welcome, ${name}! Redirecting...`;
-        signupAlert.classList.remove('hidden');
-      }
-
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 800);
-    });
-
-    function showSignupError(msg) {
-      if (signupAlert) {
-        signupAlert.className = 'alert alert-error';
-        signupAlert.textContent = msg;
-        signupAlert.classList.remove('hidden');
-      }
-    }
   }
 }
 

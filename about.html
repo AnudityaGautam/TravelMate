@@ -10,6 +10,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('travelMateTheme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -165,15 +175,15 @@
           </div>
 
           <div class="faq-container" style="max-width: 780px; margin: 0 auto;">
-            <div class="faq-item" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem;">
+            <div class="faq-item" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem;">
               <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">💡 How does the debt settlement algorithm work?</h3>
               <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">TravelMate calculates each member's total expenditure and determines who overpaid and who underpaid relative to their equal share. It then applies a Greedy minimum cash-flow optimization to settle all debts with the absolute minimum number of payment transfers.</p>
             </div>
-            <div class="faq-item" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem;">
+            <div class="faq-item" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem;">
               <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">📱 Does TravelMate work without internet?</h3>
               <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Yes! TravelMate is designed as an offline-first client application. All trips, expenses, and itinerary data are stored securely on your device in your browser's LocalStorage.</p>
             </div>
-            <div class="faq-item" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem;">
+            <div class="faq-item" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem;">
               <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">📊 Can I export my trip records to Excel or PDF?</h3>
               <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Absolutely. You can download an instant CSV spreadsheet formatted for Microsoft Excel or Google Sheets, or print a formatted PDF expense summary invoice directly from the Trip Expenses page.</p>
             </div>
@@ -188,7 +198,7 @@
             <p class="section-subtitle">Suggestions, feedback, or custom trip features? Drop us a note!</p>
           </div>
 
-          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm);">
+          <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm);">
             <div id="contactSuccessAlert" class="alert alert-success hidden" style="margin-bottom: 1rem;"></div>
             <form id="contactForm" class="auth-form">
               <div class="form-group">

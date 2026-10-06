@@ -33,6 +33,7 @@
   
   /* Borders */
   --border: #e2e8f0;              /* Slate 200 */
+  --border-color: #e2e8f0;
   --border-hover: #cbd5e1;
   --border-focus: #38bdf8;
   
@@ -40,6 +41,12 @@
   --error: #dc2626;
   --error-bg: #fef2f2;
   --error-border: #fecaca;
+  --success: #059669;
+  --success-bg: #ecfdf5;
+  --success-border: #a7f3d0;
+  --info: #0284c7;
+  --info-bg: #f0f9ff;
+  --info-border: #bae6fd;
   
   /* Radii */
   --radius-sm: 8px;
@@ -72,12 +79,23 @@
   --text-light: #64748b;          /* Slate 500 */
   
   --border: #233554;              /* Slate border */
+  --border-color: #233554;
   --border-hover: #3b5278;
   --border-focus: #38bdf8;
   
   --primary-light: rgba(2, 132, 199, 0.22);
   --secondary-light: rgba(234, 88, 12, 0.22);
   --accent-light: rgba(5, 150, 105, 0.22);
+  
+  --error: #f87171;
+  --error-bg: rgba(220, 38, 38, 0.18);
+  --error-border: #991b1b;
+  --success: #34d399;
+  --success-bg: rgba(5, 150, 105, 0.18);
+  --success-border: #065f46;
+  --info: #38bdf8;
+  --info-bg: rgba(2, 132, 199, 0.18);
+  --info-border: #0284c7;
   
   --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.5);
@@ -123,6 +141,70 @@
   color: var(--text-main);
   border-color: var(--border);
 }
+
+[data-theme="dark"] .form-input:focus,
+[data-theme="dark"] .form-select:focus,
+[data-theme="dark"] .dest-search-input:focus {
+  background-color: var(--bg-input) !important;
+  color: var(--text-main) !important;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.25);
+}
+
+[data-theme="dark"] .trip-card.active {
+  background: linear-gradient(180deg, #1c2e4a 0%, #152238 60%) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px var(--primary-light), var(--shadow-md) !important;
+}
+
+[data-theme="dark"] .active-trip-banner {
+  background: linear-gradient(135deg, #10223d 0%, #172a46 100%) !important;
+  border-color: #0284c7 !important;
+}
+
+[data-theme="dark"] .pair-settlement-item {
+  background: linear-gradient(135deg, #23201d 0%, #1c2638 100%) !important;
+  border-color: #78350f !important;
+}
+
+[data-theme="dark"] .pair-settlement-item.settled-clean {
+  background: rgba(5, 150, 105, 0.15) !important;
+  border-color: #065f46 !important;
+}
+
+[data-theme="dark"] .pair-amount {
+  background-color: #1a2a44 !important;
+  color: #f8fafc !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .member-chip {
+  background-color: #1a2a44 !important;
+  border-color: var(--border) !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .settlement-card.receive {
+  background-color: rgba(5, 150, 105, 0.15) !important;
+  border-left-color: var(--accent) !important;
+}
+
+[data-theme="dark"] .settlement-card.pay {
+  background-color: rgba(234, 88, 12, 0.15) !important;
+  border-left-color: var(--secondary) !important;
+}
+
+[data-theme="dark"] .btn-demo-reset {
+  background-color: rgba(220, 38, 38, 0.15) !important;
+  border-color: #7f1d1d !important;
+  color: #f87171 !important;
+}
+
+[data-theme="dark"] .btn-demo-reset:hover {
+  background-color: rgba(220, 38, 38, 0.25) !important;
+  border-color: #ef4444 !important;
+}
+
 [data-theme="dark"] .expense-table th {
   background-color: #1a2a44;
   color: #cbd5e1;
@@ -141,6 +223,10 @@
 [data-theme="dark"] .checklist-item {
   background-color: #1a2a44;
   border-color: var(--border);
+}
+[data-theme="dark"] .checklist-item:hover {
+  background-color: #1e314f !important;
+  border-color: var(--border-hover) !important;
 }
 [data-theme="dark"] .checklist-item.done {
   background-color: rgba(5, 150, 105, 0.15);
@@ -1259,12 +1345,27 @@ img {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  transition: var(--transition);
 }
 
 .alert-error {
   background-color: var(--error-bg);
   border: 1px solid var(--error-border);
   color: var(--error);
+  font-weight: 600;
+}
+
+.alert-success {
+  background-color: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success);
+  font-weight: 600;
+}
+
+.alert-info {
+  background-color: var(--info-bg);
+  border: 1px solid var(--info-border);
+  color: var(--info);
   font-weight: 600;
 }
 
@@ -2689,7 +2790,7 @@ img {
     top: 76px;
     left: 0;
     right: 0;
-    background-color: #ffffff;
+    background-color: var(--bg-card);
     flex-direction: column;
     padding: 1.25rem;
     border-bottom: 1px solid var(--border);
@@ -3030,6 +3131,299 @@ img {
   background-color: rgba(2, 132, 199, 0.2);
   border-color: #38bdf8;
   color: #38bdf8;
+}
+
+/* ===================================================
+   Two-Factor OTP Verification & Channel Selectors
+   =================================================== */
+.otp-channel-selector-group {
+  margin-bottom: 0.65rem;
+}
+
+.otp-channel-radios {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+.otp-channel-radio-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  background-color: var(--bg-card);
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+}
+
+.otp-channel-radio-card:hover {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+.otp-channel-radio-card.active {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.otp-channel-radio-card input[type="radio"] {
+  display: none;
+}
+
+.otp-channel-radio-card .channel-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.otp-channel-radio-card .channel-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.otp-channel-radio-card .channel-meta strong {
+  font-size: 0.88rem;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.otp-channel-radio-card .channel-meta small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .otp-channel-radio-card {
+  background-color: var(--bg-input);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .otp-channel-radio-card:hover,
+[data-theme="dark"] .otp-channel-radio-card.active {
+  background-color: rgba(2, 132, 199, 0.18);
+  border-color: #38bdf8;
+}
+
+/* OTP Panel & Digit Inputs */
+.otp-badge-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.85rem;
+  margin: 0 auto 0.75rem;
+}
+
+[data-theme="dark"] .otp-badge-icon {
+  background: rgba(2, 132, 199, 0.22);
+  color: #38bdf8;
+}
+
+.otp-panel-title {
+  text-align: center;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+}
+
+.otp-panel-subtitle {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+
+.otp-inputs-grid {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.85rem 0 1rem;
+}
+
+.otp-digit {
+  width: 48px;
+  height: 54px;
+  text-align: center;
+  font-size: 1.55rem;
+  font-weight: 800;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  transition: var(--transition);
+  outline: none;
+}
+
+.otp-digit:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-glow);
+  transform: translateY(-2px);
+}
+
+[data-theme="dark"] .otp-digit {
+  background-color: var(--bg-input);
+  color: #f8fafc;
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .otp-digit:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2);
+}
+
+.otp-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.4rem 0 0.85rem;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.btn-link:disabled {
+  color: var(--text-light);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.otp-external-box {
+  background-color: rgba(37, 211, 102, 0.08);
+  border: 1.5px solid #25D366;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.otp-external-info {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.85rem;
+}
+
+.otp-external-info strong {
+  color: #128c7e;
+  display: block;
+}
+
+[data-theme="dark"] .otp-external-box {
+  background-color: rgba(37, 211, 102, 0.12);
+  border-color: #128c7e;
+}
+
+[data-theme="dark"] .otp-external-info strong {
+  color: #25D366;
+}
+
+.otp-demo-helper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-subtle);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 1rem;
+}
+
+/* Floating OTP Notification Toast */
+.otp-toast {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10000;
+  background: var(--bg-card);
+  color: var(--text-main);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.3), 0 4px 10px -2px rgba(0, 0, 0, 0.1);
+  border: 1.5px solid var(--border);
+  max-width: 360px;
+  animation: slideToastTop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  cursor: pointer;
+}
+
+.otp-toast.gmail-toast {
+  border-left: 5px solid #ea4335;
+}
+
+.otp-toast.whatsapp-toast {
+  border-left: 5px solid #25D366;
+}
+
+.otp-toast-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.otp-toast-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.otp-toast-body {
+  font-size: 0.9rem;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.otp-toast-code-badge {
+  display: inline-block;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  margin-top: 0.35rem;
+}
+
+[data-theme="dark"] .otp-toast-code-badge {
+  background: rgba(2, 132, 199, 0.25);
+  color: #38bdf8;
+}
+
+@keyframes slideToastTop {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 /* Live Sync Floating Toast */

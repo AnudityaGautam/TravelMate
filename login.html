@@ -10,6 +10,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('travelMateTheme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -38,7 +48,7 @@
 
       <!-- Nav Actions: Theme Toggle & Guest Link -->
       <div class="nav-actions-group">
-        <button type="button" id="themeToggleBtn" class="btn-theme-toggle" title="Toggle Dark/Light Mode">🌙</button>
+        <button type="button" id="themeToggleBtn" class="btn-theme-toggle" title="Toggle Dark/Light Mode" aria-label="Toggle Dark/Light Mode">🌙</button>
         <button type="button" id="sosNavBtn" class="btn-nav-sos" title="Emergency Helplines">🚨 SOS</button>
         <a href="index.html" class="btn btn-outline btn-sm">Skip to Home</a>
       </div>
@@ -56,11 +66,11 @@
             <span>✈️</span> TravelMate
           </a>
           <h1 class="auth-title" id="authTitle">Welcome Back</h1>
-          <p class="auth-subtitle" id="authSubtitle">Sign in to sync your trips, track expenses, and manage group splits.</p>
+          <p class="auth-subtitle" id="authSubtitle">Sign in to sync your trips, track expenses, and manage group splits with OTP verification.</p>
         </div>
 
         <!-- Auth Tabs: Sign In / Create Account -->
-        <div class="auth-tabs" role="tablist">
+        <div class="auth-tabs" id="authTabsNav" role="tablist">
           <button type="button" id="tabLoginBtn" class="auth-tab-btn active" role="tab" aria-selected="true">
             Sign In
           </button>
@@ -91,6 +101,36 @@
               </div>
             </div>
 
+            <!-- OTP Method Selection for Login -->
+            <div class="form-group otp-channel-selector-group">
+              <label class="form-label">Send Security OTP Via <span class="req">*</span></label>
+              <div class="otp-channel-radios">
+                <label class="otp-channel-radio-card active" id="loginChannelGmailLabel">
+                  <input type="radio" name="loginOtpChannel" value="gmail" checked>
+                  <span class="channel-icon">📧</span>
+                  <span class="channel-meta">
+                    <strong>Gmail (Email)</strong>
+                    <small>Direct to inbox</small>
+                  </span>
+                </label>
+                <label class="otp-channel-radio-card" id="loginChannelWhatsappLabel">
+                  <input type="radio" name="loginOtpChannel" value="whatsapp">
+                  <span class="channel-icon">💬</span>
+                  <span class="channel-meta">
+                    <strong>WhatsApp</strong>
+                    <small>Direct message</small>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- WhatsApp Phone Input (if WhatsApp channel selected) -->
+            <div class="form-group hidden" id="loginWhatsappWrap">
+              <label for="loginWhatsappPhone" class="form-label">WhatsApp Number <span class="req">*</span></label>
+              <input type="tel" id="loginWhatsappPhone" class="form-input" placeholder="e.g. +91 9876543210" autocomplete="tel">
+              <span class="form-hint">Enter your WhatsApp number with country code (e.g. +91)</span>
+            </div>
+
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem;">
               <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text-muted);">
                 <input type="checkbox" id="rememberMe" checked>
@@ -100,9 +140,30 @@
             </div>
 
             <button type="submit" id="loginSubmitBtn" class="btn btn-primary btn-md" style="width: 100%; margin-top: 0.5rem;">
-              Sign In to TravelMate &rarr;
+              Sign In with OTP &rarr;
             </button>
           </form>
+
+          <!-- Quick Test Demo Users -->
+          <div class="auth-demo-box" id="authDemoBox" style="margin-top: 1.5rem;">
+            <div class="auth-demo-title">
+              <span>⚡</span> Quick Login (Click to Auto-fill)
+            </div>
+            <div class="auth-demo-grid">
+              <button type="button" class="btn-demo-user" data-email="anuditya@travelmate.com" data-pwd="password123" data-name="Anuditya Gautam" data-phone="+919876543210">
+                <span><strong>Anuditya Gautam</strong> (UI/UX)</span>
+                <small>anuditya@travelmate.com</small>
+              </button>
+              <button type="button" class="btn-demo-user" data-email="avisneh@travelmate.com" data-pwd="password123" data-name="Avisneh Kushwaha" data-phone="+919876543211">
+                <span><strong>Avisneh Kushwaha</strong> (Lead)</span>
+                <small>avisneh@travelmate.com</small>
+              </button>
+              <button type="button" class="btn-demo-user" data-email="dipali@travelmate.com" data-pwd="password123" data-name="Dipali Sinha" data-phone="+919876543212">
+                <span><strong>Dipali Sinha</strong> (QA)</span>
+                <small>dipali@travelmate.com</small>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- 2. SIGN UP PANEL (Hidden by default) -->
@@ -148,20 +209,142 @@
               </div>
             </div>
 
+            <!-- OTP Method Selection for Signup -->
+            <div class="form-group otp-channel-selector-group">
+              <label class="form-label">Verify Account Via OTP <span class="req">*</span></label>
+              <div class="otp-channel-radios">
+                <label class="otp-channel-radio-card active" id="signupChannelGmailLabel">
+                  <input type="radio" name="signupOtpChannel" value="gmail" checked>
+                  <span class="channel-icon">📧</span>
+                  <span class="channel-meta">
+                    <strong>Gmail (Email)</strong>
+                    <small>Direct to inbox</small>
+                  </span>
+                </label>
+                <label class="otp-channel-radio-card" id="signupChannelWhatsappLabel">
+                  <input type="radio" name="signupOtpChannel" value="whatsapp">
+                  <span class="channel-icon">💬</span>
+                  <span class="channel-meta">
+                    <strong>WhatsApp</strong>
+                    <small>Direct message</small>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- WhatsApp Phone Input for Signup (optional or required if WhatsApp chosen) -->
+            <div class="form-group hidden" id="signupWhatsappWrap">
+              <label for="signupWhatsappPhone" class="form-label">WhatsApp Mobile Number <span class="req">*</span></label>
+              <input type="tel" id="signupWhatsappPhone" class="form-input" placeholder="e.g. +91 9876543210" autocomplete="tel">
+              <span class="form-hint">Enter your 10-digit number with country code for verification</span>
+            </div>
+
             <button type="submit" id="signupSubmitBtn" class="btn btn-primary btn-md" style="width: 100%; margin-top: 0.5rem;">
-              Create My Account &rarr;
+              Send OTP & Create Account &rarr;
+            </button>
+          </form>
+        </div>
+
+        <!-- 3. OTP VERIFICATION PANEL (Activated dynamically) -->
+        <div id="otpPanel" class="hidden">
+          <!-- Alert Notification -->
+          <div id="otpAlert" class="alert alert-info"></div>
+
+          <div class="otp-card-header" style="text-align: center;">
+            <div class="otp-badge-icon">🔐</div>
+            <h2 class="otp-panel-title" id="otpTitle">Two-Factor OTP Verification</h2>
+            <p class="otp-panel-subtitle" id="otpSubtitle">
+              We have sent a 6-digit verification code to <strong id="otpTargetDisplay">your Gmail</strong>.
+            </p>
+          </div>
+
+          <!-- WhatsApp Web Quick-Open Box (visible if channel is WhatsApp) -->
+          <div id="whatsappActionBox" class="otp-external-box hidden">
+            <div class="otp-external-info">
+              <span style="font-size: 1.5rem;">💬</span>
+              <div>
+                <strong>WhatsApp Verification Code</strong>
+                <p style="font-size: 0.8rem; margin: 0; color: var(--text-muted);">
+                  Tap below to open WhatsApp chat with your OTP pre-filled.
+                </p>
+              </div>
+            </div>
+            <a id="btnOpenWhatsApp" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="color: #25D366; border-color: #25D366; white-space: nowrap;">
+              Open WhatsApp &rarr;
+            </a>
+          </div>
+
+          <!-- OTP Form -->
+          <form id="otpForm" class="auth-form">
+            <div class="form-group" style="text-align: center;">
+              <label class="form-label" style="display: block; margin-bottom: 0.5rem;">
+                Enter 6-Digit Code <span class="req">*</span>
+              </label>
+              <div class="otp-inputs-grid" id="otpInputsGrid">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-index="0" autofocus autocomplete="one-time-code">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-index="1">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-index="2">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-index="3">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-index="4">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-index="5">
+              </div>
+            </div>
+
+            <div class="otp-meta-row">
+              <span id="otpTimerText" style="font-size: 0.85rem; color: var(--text-muted);">
+                Resend available in <strong id="otpCountdown">60</strong>s
+              </span>
+              <button type="button" id="btnResendOtp" class="btn-link" disabled style="font-size: 0.85rem;">
+                Resend OTP
+              </button>
+            </div>
+
+            <!-- Demo helper for quick testing -->
+            <div class="otp-demo-helper">
+              <div style="font-size: 0.82rem; color: var(--text-muted);">
+                <span>💡 Evaluating project? Click to fill code instantly:</span>
+              </div>
+              <button type="button" id="btnAutoFillOtp" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 0.25rem 0.65rem; white-space: nowrap;">
+                ⚡ Auto-Fill Code
+              </button>
+            </div>
+
+            <button type="submit" id="btnVerifyOtpSubmit" class="btn btn-primary btn-md" style="width: 100%; margin-top: 0.5rem;">
+              Verify & Complete &rarr;
+            </button>
+
+            <button type="button" id="btnCancelOtp" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 0.25rem;">
+              &larr; Back / Change Details
             </button>
           </form>
         </div>
 
         <!-- Footer Links -->
-        <div class="auth-footer">
+        <div class="auth-footer" id="authFooterWrap">
           <p>
             Prefer not to sign in now? 
             <a href="index.html">Continue as Guest &rarr;</a>
           </p>
         </div>
 
+      </div>
+    </div>
+
+    <!-- Floating Interactive OTP Notification Toast -->
+    <div id="otpSimulatorToast" class="otp-toast hidden" role="alert" aria-live="assertive">
+      <div class="otp-toast-header">
+        <div class="otp-toast-title">
+          <span id="toastIcon">📧</span>
+          <span id="toastChannelName">Gmail Notification</span>
+        </div>
+        <button type="button" id="toastCloseBtn" class="toast-close" title="Close Notification">&times;</button>
+      </div>
+      <div class="otp-toast-body" id="toastBody">
+        <div>Your TravelMate security verification code is:</div>
+        <div class="otp-toast-code-badge" id="toastCodeDisplay">123456</div>
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">
+          Click here or tap "Auto-Fill Code" to proceed.
+        </div>
       </div>
     </div>
 
